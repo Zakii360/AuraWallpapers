@@ -10,23 +10,27 @@ const AuraController =
     require("./controller");
 
 
-let mainWindow;
-let controller;
+let mainWindow = null;
+
+let controller = null;
+
 
 
 
 function createWindow(){
 
+
     mainWindow =
         new BrowserWindow({
 
             width: 1100,
+
             height: 700,
 
-            minWidth: 800,
-            minHeight: 500,
+            minWidth: 850,
 
-            backgroundColor: "#1b1b1b",
+            minHeight: 550,
+
 
             icon:
                 path.join(
@@ -34,6 +38,8 @@ function createWindow(){
                     "assets",
                     "icon.png"
                 ),
+
+
 
             webPreferences: {
 
@@ -43,16 +49,21 @@ function createWindow(){
 
             }
 
+
         });
 
 
+
     mainWindow.loadFile(
+
         path.join(
             __dirname,
             "ui",
             "index.html"
         )
+
     );
+
 
 
     mainWindow.on(
@@ -64,11 +75,15 @@ function createWindow(){
         }
     );
 
+
 }
 
 
 
+
+
 function setupIPC(){
+
 
 
     ipcMain.handle(
@@ -82,14 +97,20 @@ function setupIPC(){
 
 
 
+
+
     ipcMain.handle(
         "wallpaper:apply",
-        (event, id) => {
+        async (event, id) => {
 
-            return controller.applyWallpaper(id);
+            return await controller.applyWallpaper(
+                id
+            );
 
         }
     );
+
+
 
 
 
@@ -99,19 +120,12 @@ function setupIPC(){
 
             controller.closeWallpaper();
 
-        }
-    );
-
-
-
-    ipcMain.handle(
-        "settings:get",
-        () => {
-
-            return controller.getSettings();
+            return true;
 
         }
     );
+
+
 
 
 
@@ -125,38 +139,63 @@ function setupIPC(){
     );
 
 
+
+
+
+    ipcMain.handle(
+        "settings:get",
+        () => {
+
+            return controller.getSettings();
+
+        }
+    );
+
+
 }
 
 
 
-app.whenReady().then(() => {
 
 
-    controller =
-        new AuraController();
+app.whenReady().then(
+    () => {
 
 
-    try {
+        controller =
+            new AuraController();
 
-        controller.initialize();
 
-    } catch(error) {
 
-        console.error(
-            "AuraWallpapers startup error:",
-            error
-        );
+        try {
+
+            controller.initialize();
+
+
+        } catch(error) {
+
+
+            console.error(
+                "AuraWallpapers initialization failed:",
+                error
+            );
+
+
+        }
+
+
+
+        setupIPC();
+
+
+
+        createWindow();
+
 
     }
+);
 
 
-    setupIPC();
-
-
-    createWindow();
-
-
-});
 
 
 
@@ -164,14 +203,18 @@ app.on(
     "window-all-closed",
     () => {
 
+
         if(process.platform !== "darwin"){
 
             app.quit();
 
         }
 
+
     }
 );
+
+
 
 
 
@@ -179,11 +222,15 @@ app.on(
     "activate",
     () => {
 
-        if(BrowserWindow.getAllWindows().length === 0){
+
+        if(
+            BrowserWindow.getAllWindows().length === 0
+        ){
 
             createWindow();
 
         }
+
 
     }
 );
