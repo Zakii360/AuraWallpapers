@@ -1,55 +1,98 @@
 name: Build AuraWallpapers
 
+
 on:
-  workflow_dispatch:
 
   push:
-    tags:
-      - "v*"
+
+    branches:
+
+      - main
+
+
+  workflow_dispatch:
+
+
+
 
 
 jobs:
 
+
   build:
 
-    name: Build on ${{ matrix.os }}
+
+    name: Build ${{ matrix.os }}
+
 
     runs-on: ${{ matrix.os }}
 
+
+
     strategy:
-      fail-fast: false
+
 
       matrix:
+
+
         os:
+
           - windows-latest
+
           - ubuntu-latest
+
+
+
 
 
     steps:
 
+
       - name: Checkout repository
+
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+
+
+
 
 
       - name: Setup Node.js
+
         uses: actions/setup-node@v4
+
         with:
+
+
           node-version: 22
 
 
+
+
+
       - name: Install dependencies
+
         run: npm install
 
 
-      - name: Build AuraWallpapers
+
+
+
+      - name: Build application
+
         run: npm run build
 
 
-      - name: Upload build files
+
+
+
+      - name: Upload build artifacts
+
         uses: actions/upload-artifact@v4
+
         with:
+
+
           name: AuraWallpapers-${{ matrix.os }}
+
+
           path: release/
-          if-no-files-found: error
