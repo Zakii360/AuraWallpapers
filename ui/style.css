@@ -1,0 +1,61 @@
+body {
+
+    margin:0;
+    background:#1e1e1e;
+    color:#eee;
+
+    font-family:
+    system-ui,
+    sans-serif;
+
+}
+
+
+header {
+
+    padding:25px;
+    border-bottom:
+    1px solid #333;
+
+}
+
+
+main {
+
+    display:flex;
+    gap:20px;
+    padding:20px;
+
+}
+
+
+section {
+
+    background:#252525;
+    padding:20px;
+    border-radius:8px;
+
+}
+
+
+.library {
+
+    flex:2;
+
+}
+
+
+.settings {
+
+    flex:1;
+
+}
+
+
+.card {
+
+    background:#303030;
+    padding:15px;
+    border-radius:6px;
+
+}
