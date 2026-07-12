@@ -1,10 +1,5 @@
-const {
-    BrowserWindow,
-    screen
-} = require("electron");
-
+const { BrowserWindow } = require("electron");
 const path = require("path");
-const fs = require("fs");
 
 const DesktopManager =
     require("./desktop");
@@ -17,8 +12,7 @@ class Wallpaper {
     constructor(){
 
 
-        this.instances =
-            new Map();
+        this.window = null;
 
 
         this.desktop =
@@ -31,115 +25,64 @@ class Wallpaper {
 
 
 
-    create(wallpaper){
+    create(scene){
 
 
-        const displays =
-            screen.getAllDisplays();
-
-
-
-        const created = [];
+        this.close();
 
 
 
-        for(const display of displays){
+        if(!scene || !scene.html){
 
-
-            const window =
-                this.createWindow(
-                    wallpaper,
-                    display
-                );
-
-
-
-            this.instances.set(
-                display.id,
-                window
+            throw new Error(
+                "Invalid wallpaper scene"
             );
-
-
-            created.push(window);
-
 
         }
 
 
 
-        return created;
-
-
-    }
-
-
-
-
-
-    createWindow(
-        wallpaper,
-        display
-    ){
-
-
-        const bounds =
-            display.bounds;
-
-
-
-        const win =
+        this.window =
             new BrowserWindow({
 
 
-                x:
-                    bounds.x,
-
-
-                y:
-                    bounds.y,
-
-
                 width:
-                    bounds.width,
+                    1920,
 
 
                 height:
-                    bounds.height,
-
+                    1080,
 
 
                 frame:false,
 
 
+                transparent:false,
+
+
                 fullscreen:true,
-
-
-                kiosk:true,
 
 
                 show:false,
 
 
-                transparent:false,
+                resizable:false,
 
 
-                skipTaskbar:true,
-
-
-                focusable:false,
-
+                movable:false,
 
 
                 webPreferences:{
 
 
-                    contextIsolation:false,
+                    nodeIntegration:false,
 
 
-                    nodeIntegration:true
+                    contextIsolation:true
 
 
                 }
+
 
 
             });
@@ -148,79 +91,48 @@ class Wallpaper {
 
 
 
-        const data =
-            Buffer.from(
-
-                JSON.stringify({
-
-                    id:
-                        wallpaper.id,
+        this.window.setIgnoreMouseEvents(
+            true
+        );
 
 
-                    name:
-                        wallpaper.name,
 
-
-                    path:
-                        wallpaper.path,
-
-
-                    image:
-                        wallpaper.image,
-
-
-                    effects:
-                        wallpaper.effects || {}
-
-                })
-
-            )
-            .toString(
-                "base64"
-            );
+        this.window.loadFile(
+            scene.html
+        );
 
 
 
 
+        this.window.once(
+            "ready-to-show",
+            ()=>{
 
-        win.loadFile(
 
-            wallpaper.html,
+                this.window.show();
 
-            {
 
-                query:{
 
-                    aura:
-                        data
+                try {
+
+
+                    this.desktop.attach(
+                        this.window
+                    );
+
+
+                }
+                catch(error){
+
+
+                    console.error(
+                        "Desktop attach failed:",
+                        error
+                    );
+
 
                 }
 
-            }
-
-        );
-
-
-
-
-
-        win.once(
-
-            "ready-to-show",
-
-            ()=>{
-
-
-                win.show();
-
-
-
-                this.desktop.attach(
-
-                    win.getNativeWindowHandle()
-
-                );
-
 
             }
 
@@ -229,17 +141,13 @@ class Wallpaper {
 
 
 
-
-        win.on(
-
+        this.window.on(
             "closed",
-
             ()=>{
 
 
-                this.instances.delete(
-                    display.id
-                );
+                this.window =
+                    null;
 
 
             }
@@ -248,7 +156,7 @@ class Wallpaper {
 
 
 
-        return win;
+        return this.window;
 
 
     }
@@ -260,43 +168,25 @@ class Wallpaper {
     close(){
 
 
-        for(
-            const window
-            of this.instances.values()
-        ){
+        if(this.window){
 
 
-            if(!window.isDestroyed()){
+            this.window.removeAllListeners();
 
 
-                window.close();
+            this.window.destroy();
 
 
-            }
+            this.window =
+                null;
 
 
         }
 
 
-
-        this.instances.clear();
-
-
     }
 
 
-
-
-
-    isRunning(){
-
-
-        return (
-            this.instances.size > 0
-        );
-
-
-    }
 
 
 
