@@ -1,7 +1,13 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const {
+    app,
+    BrowserWindow,
+    ipcMain
+} = require("electron");
+
 const path = require("path");
 
-const AuraController = require("./controller");
+const AuraController =
+    require("./controller");
 
 
 let mainWindow;
@@ -11,33 +17,42 @@ let controller;
 
 function createWindow(){
 
-    mainWindow = new BrowserWindow({
+    mainWindow =
+        new BrowserWindow({
 
-        width: 1100,
-        height: 700,
+            width: 1100,
+            height: 700,
 
-        minWidth: 800,
-        minHeight: 500,
+            minWidth: 800,
+            minHeight: 500,
 
-        backgroundColor: "#1e1e1e",
+            backgroundColor: "#1b1b1b",
 
-        webPreferences: {
+            icon:
+                path.join(
+                    __dirname,
+                    "assets",
+                    "icon.png"
+                ),
 
-            nodeIntegration: true,
-            contextIsolation: false
+            webPreferences: {
 
-        }
+                nodeIntegration: true,
 
-    });
+                contextIsolation: false
+
+            }
+
+        });
 
 
     mainWindow.loadFile(
         path.join(
             __dirname,
-            "ui/index.html"
+            "ui",
+            "index.html"
         )
     );
-
 
 }
 
@@ -45,14 +60,16 @@ function createWindow(){
 
 function setupIPC(){
 
+
     ipcMain.handle(
         "wallpapers:list",
-        () => {
+        ()=>{
 
             return controller.getWallpapers();
 
         }
     );
+
 
 
     ipcMain.handle(
@@ -65,6 +82,7 @@ function setupIPC(){
     );
 
 
+
     ipcMain.handle(
         "wallpaper:close",
         ()=>{
@@ -75,6 +93,7 @@ function setupIPC(){
     );
 
 
+
     ipcMain.handle(
         "settings:get",
         ()=>{
@@ -83,6 +102,18 @@ function setupIPC(){
 
         }
     );
+
+
+
+    ipcMain.handle(
+        "wallpapers:refresh",
+        ()=>{
+
+            return controller.refresh();
+
+        }
+    );
+
 
 }
 
