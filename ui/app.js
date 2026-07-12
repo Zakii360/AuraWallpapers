@@ -1,12 +1,6 @@
-const {
-    ipcRenderer
-} = require("electron");
-
-
-
-const wallpaperList =
-    document.getElementById(
-        "wallpaper-list"
+const wallpapersContainer =
+    document.querySelector(
+        ".wallpapers"
     );
 
 
@@ -16,20 +10,80 @@ const refreshButton =
     );
 
 
+const fpsSelect =
+    document.getElementById(
+        "fps"
+    );
+
+
+const startupCheckbox =
+    document.getElementById(
+        "startup"
+    );
+
+
+
+
 
 async function loadWallpapers(){
 
 
     const wallpapers =
-        await ipcRenderer.invoke(
-            "wallpapers:list"
+        await window.aura.wallpapers.list();
+
+
+
+    wallpapersContainer.innerHTML =
+        "";
+
+
+
+    for(
+        const wallpaper
+        of wallpapers
+    ){
+
+
+        const card =
+            document.createElement(
+                "button"
+            );
+
+
+
+        card.className =
+            "wallpaper-card";
+
+
+
+        card.innerHTML = `
+
+            <div class="title">
+                ${wallpaper.name}
+            </div>
+
+            <div class="author">
+                ${wallpaper.author}
+            </div>
+
+        `;
+
+
+
+        card.onclick =
+            ()=>applyWallpaper(
+                wallpaper.id
+            );
+
+
+
+        wallpapersContainer.appendChild(
+            card
         );
 
 
+    }
 
-    renderWallpapers(
-        wallpapers
-    );
 
 }
 
@@ -37,127 +91,67 @@ async function loadWallpapers(){
 
 
 
-function renderWallpapers(
-    wallpapers
-){
+async function applyWallpaper(id){
 
 
-    if(!wallpaperList){
+    const result =
+        await window.aura.wallpapers.apply(
+            id
+        );
 
-        return;
+
+
+    if(
+        result?.error
+    ){
+
+
+        console.error(
+            result.error
+        );
+
+
+        alert(
+            result.error
+        );
+
+
+    }
+
+
+}
+
+
+
+
+
+async function loadSettings(){
+
+
+    const settings =
+        await window.aura.settings.get();
+
+
+
+    if(
+        settings.fps
+    ){
+
+        fpsSelect.value =
+            settings.fps;
 
     }
 
 
 
-    wallpaperList.innerHTML =
-        "";
+    if(
+        settings.startup !== undefined
+    ){
 
+        startupCheckbox.checked =
+            settings.startup;
 
-
-    wallpapers.forEach(
-        wallpaper => {
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-
-            card.className =
-                "wallpaper-card";
-
-
-
-            card.innerHTML = `
-
-                <h3>
-                    ${wallpaper.name}
-                </h3>
-
-                <button>
-                    Apply
-                </button>
-
-            `;
-
-
-
-            const button =
-                card.querySelector(
-                    "button"
-                );
-
-
-
-            button.addEventListener(
-                "click",
-                async () => {
-
-
-                    button.disabled =
-                        true;
-
-
-
-                    try {
-
-
-                        await ipcRenderer.invoke(
-                            "wallpaper:apply",
-                            wallpaper.id
-                        );
-
-
-                    } catch(error){
-
-
-                        console.error(
-                            "Failed to apply wallpaper:",
-                            error
-                        );
-
-
-                    }
-
-
-
-                    button.disabled =
-                        false;
-
-
-                }
-            );
-
-
-
-            wallpaperList.appendChild(
-                card
-            );
-
-
-        }
-
-    );
-
-}
-
-
-
-
-
-async function refresh(){
-
-
-    await ipcRenderer.invoke(
-        "wallpapers:refresh"
-    );
-
-
-
-    loadWallpapers();
+    }
 
 
 }
@@ -166,26 +160,77 @@ async function refresh(){
 
 
 
-if(refreshButton){
+refreshButton.onclick =
+    ()=>{
 
 
-    refreshButton.addEventListener(
-        "click",
-        refresh
-    );
+        loadWallpapers();
 
 
-}
+    };
+
+
+
+
+
+fpsSelect.onchange =
+    async()=>{
+
+
+        await window.aura.settings.set(
+
+            {
+
+                fps:
+                    Number(
+                        fpsSelect.value
+                    )
+
+            }
+
+        );
+
+
+    };
+
+
+
+
+
+startupCheckbox.onchange =
+    async()=>{
+
+
+        await window.aura.settings.set(
+
+            {
+
+                startup:
+                    startupCheckbox.checked
+
+            }
+
+        );
+
+
+    };
 
 
 
 
 
 window.addEventListener(
+
     "DOMContentLoaded",
-    () => {
+
+    ()=>{
+
 
         loadWallpapers();
 
+        loadSettings();
+
+
     }
+
 );
