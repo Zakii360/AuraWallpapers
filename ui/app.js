@@ -1,25 +1,17 @@
-const wallpapersContainer =
-    document.querySelector(
-        ".wallpapers"
-    );
+const wallpapers =
+    document.querySelector(".wallpapers");
 
 
 const refreshButton =
-    document.getElementById(
-        "refresh"
-    );
+    document.querySelector("#refresh");
 
 
-const fpsSelect =
-    document.getElementById(
-        "fps"
-    );
+const fps =
+    document.querySelector("#fps");
 
 
-const startupCheckbox =
-    document.getElementById(
-        "startup"
-    );
+const startup =
+    document.querySelector("#startup");
 
 
 
@@ -28,27 +20,29 @@ const startupCheckbox =
 async function loadWallpapers(){
 
 
-    const wallpapers =
-        await window.aura.wallpapers.list();
-
-
-
-    wallpapersContainer.innerHTML =
+    wallpapers.innerHTML =
         "";
 
 
 
-    for(
-        const wallpaper
-        of wallpapers
-    ){
+    const list =
+        await window.electronAPI?.getWallpapers?.()
+        ||
+        await require("electron")
+            .ipcRenderer
+            .invoke(
+                "wallpapers:get"
+            );
+
+
+
+    for(const wallpaper of list){
 
 
         const card =
             document.createElement(
-                "button"
+                "div"
             );
-
 
 
         card.className =
@@ -56,102 +50,104 @@ async function loadWallpapers(){
 
 
 
-        card.innerHTML = `
+        const image =
+            document.createElement(
+                "img"
+            );
 
-            <div class="title">
-                ${wallpaper.name}
-            </div>
 
-            <div class="author">
-                ${wallpaper.author}
-            </div>
+        image.src =
+            wallpaper.preview;
 
-        `;
+
+
+        image.onerror =
+            ()=>{
+
+                image.style.display =
+                    "none";
+
+            };
+
+
+
+        const title =
+            document.createElement(
+                "div"
+            );
+
+
+        title.className =
+            "title";
+
+
+        title.textContent =
+            wallpaper.metadata.name
+            ||
+            wallpaper.id;
+
+
+
+
+        const author =
+            document.createElement(
+                "div"
+            );
+
+
+        author.className =
+            "author";
+
+
+        author.textContent =
+            wallpaper.metadata.author
+            ||
+            "Unknown";
+
+
+
+        card.appendChild(
+            image
+        );
+
+
+        card.appendChild(
+            title
+        );
+
+
+        card.appendChild(
+            author
+        );
 
 
 
         card.onclick =
-            ()=>applyWallpaper(
-                wallpaper.id
-            );
+            async()=>{
+
+
+                await require("electron")
+                    .ipcRenderer
+                    .invoke(
+
+                        "wallpaper:apply",
+
+                        wallpaper.id
+
+                    );
+
+
+            };
 
 
 
-        wallpapersContainer.appendChild(
+        wallpapers.appendChild(
             card
         );
 
 
     }
 
-
-}
-
-
-
-
-
-async function applyWallpaper(id){
-
-
-    const result =
-        await window.aura.wallpapers.apply(
-            id
-        );
-
-
-
-    if(
-        result?.error
-    ){
-
-
-        console.error(
-            result.error
-        );
-
-
-        alert(
-            result.error
-        );
-
-
-    }
-
-
-}
-
-
-
-
-
-async function loadSettings(){
-
-
-    const settings =
-        await window.aura.settings.get();
-
-
-
-    if(
-        settings.fps
-    ){
-
-        fpsSelect.value =
-            settings.fps;
-
-    }
-
-
-
-    if(
-        settings.startup !== undefined
-    ){
-
-        startupCheckbox.checked =
-            settings.startup;
-
-    }
 
 
 }
@@ -164,7 +160,14 @@ refreshButton.onclick =
     ()=>{
 
 
-        loadWallpapers();
+        require("electron")
+        .ipcRenderer
+        .invoke(
+            "wallpapers:refresh"
+        )
+        .then(
+            loadWallpapers
+        );
 
 
     };
@@ -173,17 +176,21 @@ refreshButton.onclick =
 
 
 
-fpsSelect.onchange =
-    async()=>{
+fps.onchange =
+    ()=>{
 
 
-        await window.aura.settings.set(
+        require("electron")
+        .ipcRenderer
+        .invoke(
+
+            "settings:update",
 
             {
 
                 fps:
                     Number(
-                        fpsSelect.value
+                        fps.value
                     )
 
             }
@@ -197,16 +204,20 @@ fpsSelect.onchange =
 
 
 
-startupCheckbox.onchange =
-    async()=>{
+startup.onchange =
+    ()=>{
 
 
-        await window.aura.settings.set(
+        require("electron")
+        .ipcRenderer
+        .invoke(
+
+            "settings:update",
 
             {
 
                 startup:
-                    startupCheckbox.checked
+                    startup.checked
 
             }
 
@@ -219,18 +230,4 @@ startupCheckbox.onchange =
 
 
 
-window.addEventListener(
-
-    "DOMContentLoaded",
-
-    ()=>{
-
-
-        loadWallpapers();
-
-        loadSettings();
-
-
-    }
-
-);
+loadWallpapers();
