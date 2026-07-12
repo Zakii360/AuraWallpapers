@@ -3,20 +3,32 @@
   "version": "2.0.0",
   "description": "Open-source live wallpaper engine for Windows and Linux",
   "main": "main.js",
+
   "scripts": {
     "start": "electron .",
     "build": "electron-builder"
   },
+
   "devDependencies": {
-    "electron": "latest",
-    "electron-builder": "latest"
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
   },
+
   "dependencies": {
-    "fs-extra": "latest"
+    "fs-extra": "^11.3.0"
   },
+
   "build": {
     "appId": "com.aurawallpapers.app",
     "productName": "AuraWallpapers",
+
+    "directories": {
+      "output": "release"
+    },
+
+    "files": [
+      "**/*"
+    ],
 
     "win": {
       "target": "nsis"
