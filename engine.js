@@ -1,5 +1,5 @@
-const path = require("path");
-const WallpaperLoader = require("./wallpapers/loader");
+const WallpaperLoader =
+    require("./wallpapers/loader");
 
 
 class WallpaperEngine {
@@ -7,27 +7,29 @@ class WallpaperEngine {
 
     constructor(){
 
+
         this.loader =
-            new WallpaperLoader(
-                path.join(
-                    __dirname,
-                    "wallpapers"
-                )
-            );
+            new WallpaperLoader();
 
 
-        this.availableWallpapers = [];
 
-        this.currentWallpaper = null;
+        this.availableWallpapers =
+            [];
+
 
     }
 
 
 
+
+
     loadWallpapers(){
+
 
         this.availableWallpapers =
             this.loader.load();
+
+
 
         return this.availableWallpapers;
 
@@ -35,7 +37,10 @@ class WallpaperEngine {
 
 
 
+
+
     getWallpaper(id){
+
 
         return this.availableWallpapers.find(
             wallpaper =>
@@ -46,46 +51,22 @@ class WallpaperEngine {
 
 
 
-    setWallpaper(id){
-
-        const wallpaper =
-            this.getWallpaper(id);
-
-
-
-        if(!wallpaper){
-
-            throw new Error(
-                "Wallpaper not found: " + id
-            );
-
-        }
-
-
-
-        this.currentWallpaper =
-            wallpaper;
-
-
-        return wallpaper;
-
-    }
-
-
-
-    getCurrent(){
-
-        return this.currentWallpaper;
-
-    }
-
 
 
     refresh(){
 
-        return this.loadWallpapers();
+
+        this.availableWallpapers =
+            this.loader.load();
+
+
+
+        return this.availableWallpapers;
 
     }
+
+
+
 
 
 }
