@@ -5,11 +5,19 @@ const SettingsManager = require("./settings");
 
 class AuraController {
 
+
     constructor(){
 
-        this.engine = new WallpaperEngine();
-        this.wallpaper = new Wallpaper();
-        this.settings = new SettingsManager();
+        this.engine =
+            new WallpaperEngine();
+
+
+        this.wallpaper =
+            new Wallpaper();
+
+
+        this.settings =
+            new SettingsManager();
 
     }
 
@@ -20,6 +28,28 @@ class AuraController {
         this.settings.load();
 
         this.engine.loadWallpapers();
+
+
+        const saved =
+            this.settings.get(
+                "currentWallpaper"
+            );
+
+
+        if(saved){
+
+            const wallpaper =
+                this.engine.getWallpaper(saved);
+
+
+            if(wallpaper){
+
+                this.current =
+                    wallpaper;
+
+            }
+
+        }
 
     }
 
@@ -39,10 +69,9 @@ class AuraController {
             this.engine.setWallpaper(id);
 
 
-        this.wallpaper.create({
-            path: wallpaper.path,
-            file: wallpaper.file
-        });
+        this.wallpaper.create(
+            wallpaper
+        );
 
 
         this.settings.set(
@@ -65,11 +94,20 @@ class AuraController {
 
 
 
+    refresh(){
+
+        return this.engine.refresh();
+
+    }
+
+
+
     getSettings(){
 
         return this.settings.settings;
 
     }
+
 
 
 }
