@@ -3,67 +3,137 @@
 
 <head>
     <title>AuraWallpapers</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
+
 <body>
 
+
 <header>
+
     <h1>AuraWallpapers</h1>
-    <p>Open-source live wallpaper engine</p>
+
+    <p>
+        Open-source live wallpaper engine
+    </p>
+
 </header>
+
 
 
 <main>
 
+
 <section class="library">
 
-    <h2>Wallpapers</h2>
 
-    <div class="wallpapers"></div>
+    <h2>
+        Wallpapers
+    </h2>
+
+
+    <div
+        id="wallpaper-list"
+        class="wallpapers">
+    </div>
+
 
 </section>
 
 
+
+
+
 <section class="settings">
 
-    <h2>Settings</h2>
+
+    <h2>
+        Settings
+    </h2>
+
+
 
     <label>
-        <input id="startup" type="checkbox">
+
+        <input
+            id="startup"
+            type="checkbox"
+        >
+
         Start with system
+
     </label>
 
+
+
+
     <br><br>
+
+
+
 
     <label>
         FPS Limit
     </label>
 
+
+
     <select id="fps">
-        <option value="30">30 FPS</option>
-        <option value="60">60 FPS</option>
-        <option value="120">120 FPS</option>
+
+        <option value="30">
+            30 FPS
+        </option>
+
+
+        <option value="60">
+            60 FPS
+        </option>
+
+
+        <option value="120">
+            120 FPS
+        </option>
+
     </select>
+
+
 
 
     <br><br>
 
+
+
+
     <button id="refresh">
+
         Refresh Library
+
     </button>
 
+
+
 </section>
+
 
 </main>
 
 
+
+
+
 <footer>
+
     AuraWallpapers v2.0.0
+
 </footer>
 
 
+
+
 <script src="app.js"></script>
+
 
 </body>
 
