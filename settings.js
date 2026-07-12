@@ -10,39 +10,28 @@ class SettingsManager {
     constructor(){
 
 
-        this.file =
-            path.join(
+        this.settings = {};
 
-                app.getPath(
-                    "userData"
-                ),
 
-                "settings.json"
+        this.file = null;
 
-            );
+
+    }
 
 
 
-        this.settings = {
 
 
-            currentWallpaper:
-                null,
+    getPath(){
 
 
-            fps:
-                60,
+        return path.join(
 
+            app.getPath("userData"),
 
-            startup:
-                false,
+            "settings.json"
 
-
-            effects:
-                {}
-
-
-        };
+        );
 
 
     }
@@ -54,41 +43,53 @@ class SettingsManager {
     load(){
 
 
+        this.file =
+            this.getPath();
+
+
+
         try {
 
 
-            if(
-                fs.existsSync(
-                    this.file
-                )
-            ){
+            if(fs.existsSync(this.file)){
 
 
-                const saved =
+                this.settings =
                     JSON.parse(
 
                         fs.readFileSync(
+
                             this.file,
+
                             "utf8"
+
                         )
 
                     );
 
 
+            }
+            else {
+
 
                 this.settings =
-                    {
-
-                        ...this.settings,
-
-                        ...saved
-
-                    };
+                {
 
 
-            }
+                    currentWallpaper:null,
 
-            else {
+
+                    startup:false,
+
+
+                    fps:60,
+
+
+                    wallpapers:{}
+
+
+                };
+
 
 
                 this.save();
@@ -97,19 +98,20 @@ class SettingsManager {
             }
 
 
-
         }
-
         catch(error){
 
 
             console.error(
 
-                "Failed loading settings:",
+                "Settings load failed:",
                 error
 
             );
 
+
+
+            this.settings = {};
 
             this.save();
 
@@ -130,32 +132,9 @@ class SettingsManager {
     save(){
 
 
-        const directory =
-            path.dirname(
-                this.file
-            );
-
-
-
-        if(
-            !fs.existsSync(
-                directory
-            )
-        ){
-
-
-            fs.mkdirSync(
-
-                directory,
-
-                {
-                    recursive:true
-                }
-
-            );
-
-
-        }
+        if(!this.file)
+            this.file =
+                this.getPath();
 
 
 
@@ -206,7 +185,7 @@ class SettingsManager {
 
 
 
-        return true;
+        return value;
 
 
     }
@@ -219,16 +198,15 @@ class SettingsManager {
 
 
         this.settings =
-            {
+        {
 
 
-                ...this.settings,
+            ...this.settings,
+
+            ...values
 
 
-                ...values
-
-
-            };
+        };
 
 
 
@@ -248,13 +226,19 @@ class SettingsManager {
     getEffects(id){
 
 
+        if(!this.settings.wallpapers)
+
+            this.settings.wallpapers = {};
+
+
+
         return (
 
-            this.settings.effects[id]
+            this.settings.wallpapers[id]
 
             ||
 
-            {}
+            null
 
         );
 
@@ -265,18 +249,25 @@ class SettingsManager {
 
 
 
-    setEffects(
-        id,
-        effects
-    ){
+    setEffects(id,effects){
 
 
-        this.settings.effects[id] =
+        if(!this.settings.wallpapers)
+
+            this.settings.wallpapers = {};
+
+
+
+        this.settings.wallpapers[id] =
             effects;
 
 
 
         this.save();
+
+
+
+        return effects;
 
 
     }
