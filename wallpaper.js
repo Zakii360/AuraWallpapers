@@ -1,43 +1,64 @@
-const { BrowserWindow } = require("electron");
+const {
+    BrowserWindow,
+    screen
+} = require("electron");
+
 const path = require("path");
 
 
-class Wallpaper {
+class WallpaperEngine {
 
 
     constructor(){
 
         this.window = null;
+        this.current = null;
 
     }
 
 
 
-    create(source){
+    async load(wallpaper){
 
-        this.close();
+        this.unload();
+
+
+        const display =
+            screen.getPrimaryDisplay();
+
+
+        const bounds =
+            display.bounds;
+
 
 
         this.window =
             new BrowserWindow({
 
-                fullscreen: true,
+                x: bounds.x,
+                y: bounds.y,
+
+                width: bounds.width,
+                height: bounds.height,
 
                 frame: false,
 
                 transparent: false,
 
+                fullscreen: false,
+
                 show: false,
+
+                focusable: false,
 
                 skipTaskbar: true,
 
-                webPreferences: {
 
-                    nodeIntegration: false,
+                webPreferences: {
 
                     contextIsolation: true,
 
-                    backgroundThrottling: false
+                    sandbox: true
 
                 }
 
@@ -45,43 +66,50 @@ class Wallpaper {
 
 
 
+        this.window.setIgnoreMouseEvents(
+            true
+        );
+
+
         this.window.loadFile(
+
             path.join(
-                source.path,
-                source.file
+                wallpaper.path,
+                wallpaper.file
             )
+
         );
 
 
-        this.window.once(
-            "ready-to-show",
-            () => {
 
-                this.window.show();
+        await new Promise(
+            resolve => {
+
+                this.window.once(
+                    "ready-to-show",
+                    resolve
+                );
 
             }
         );
 
 
 
-        this.window.on(
-            "closed",
-            () => {
-
-                this.window = null;
-
-            }
-        );
+        this.window.show();
 
 
-        return this.window;
+        this.current = wallpaper;
+
+
+
+        return true;
 
     }
 
 
 
 
-    close(){
+    unload(){
 
         if(this.window){
 
@@ -91,11 +119,23 @@ class Wallpaper {
 
         }
 
+
+        this.current = null;
+
     }
 
+
+
+
+    getCurrent(){
+
+        return this.current;
+
+    }
 
 
 }
 
 
-module.exports = Wallpaper;
+
+module.exports = WallpaperEngine;
