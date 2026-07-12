@@ -1,12 +1,24 @@
-const { ipcRenderer } = require("electron");
+const {
+    ipcRenderer
+} = require("electron");
+
 
 
 const wallpaperList =
-    document.querySelector(".wallpapers");
+    document.getElementById(
+        "wallpaper-list"
+    );
+
+
+const refreshButton =
+    document.getElementById(
+        "refresh"
+    );
 
 
 
 async function loadWallpapers(){
+
 
     const wallpapers =
         await ipcRenderer.invoke(
@@ -14,115 +26,166 @@ async function loadWallpapers(){
         );
 
 
-    wallpaperList.innerHTML = "";
 
-
-    wallpapers.forEach(wallpaper=>{
-
-        const card =
-            document.createElement("div");
-
-
-        card.className = "card";
-
-
-        card.innerHTML = `
-
-            <h3>${wallpaper.name}</h3>
-
-            <p>
-                ${wallpaper.author || "Unknown"}
-            </p>
-
-            <button>
-                Apply
-            </button>
-
-        `;
-
-
-        const button =
-            card.querySelector("button");
-
-
-        button.addEventListener(
-            "click",
-            ()=>{
-
-                applyWallpaper(
-                    wallpaper.id
-                );
-
-            }
-        );
-
-
-        wallpaperList.appendChild(card);
-
-    });
-
-
-}
-
-
-
-async function applyWallpaper(id){
-
-    await ipcRenderer.invoke(
-        "wallpaper:apply",
-        id
+    renderWallpapers(
+        wallpapers
     );
 
 }
 
 
 
-async function loadSettings(){
-
-    const settings =
-        await ipcRenderer.invoke(
-            "settings:get"
-        );
 
 
-    const startup =
-        document.querySelector(
-            "#startup"
-        );
+function renderWallpapers(
+    wallpapers
+){
 
 
-    const fps =
-        document.querySelector(
-            "#fps"
-        );
+    if(!wallpaperList){
 
-
-    if(startup){
-
-        startup.checked =
-            settings.startup;
+        return;
 
     }
 
 
-    if(fps){
 
-        fps.value =
-            settings.fps;
+    wallpaperList.innerHTML =
+        "";
 
-    }
+
+
+    wallpapers.forEach(
+        wallpaper => {
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+
+            card.className =
+                "wallpaper-card";
+
+
+
+            card.innerHTML = `
+
+                <h3>
+                    ${wallpaper.name}
+                </h3>
+
+                <button>
+                    Apply
+                </button>
+
+            `;
+
+
+
+            const button =
+                card.querySelector(
+                    "button"
+                );
+
+
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+
+                    button.disabled =
+                        true;
+
+
+
+                    try {
+
+
+                        await ipcRenderer.invoke(
+                            "wallpaper:apply",
+                            wallpaper.id
+                        );
+
+
+                    } catch(error){
+
+
+                        console.error(
+                            "Failed to apply wallpaper:",
+                            error
+                        );
+
+
+                    }
+
+
+
+                    button.disabled =
+                        false;
+
+
+                }
+            );
+
+
+
+            wallpaperList.appendChild(
+                card
+            );
+
+
+        }
+
+    );
 
 }
 
 
 
+
+
+async function refresh(){
+
+
+    await ipcRenderer.invoke(
+        "wallpapers:refresh"
+    );
+
+
+
+    loadWallpapers();
+
+
+}
+
+
+
+
+
+if(refreshButton){
+
+
+    refreshButton.addEventListener(
+        "click",
+        refresh
+    );
+
+
+}
+
+
+
+
+
 window.addEventListener(
     "DOMContentLoaded",
-    ()=>{
+    () => {
 
         loadWallpapers();
-
-        loadSettings();
 
     }
 );
