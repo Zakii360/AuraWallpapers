@@ -12,9 +12,13 @@ jobs:
 
   build:
 
+    name: Build on ${{ matrix.os }}
+
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
+
       matrix:
         os:
           - windows-latest
@@ -23,31 +27,30 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
-
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
 
 
       - name: Install dependencies
         run: npm install
 
 
-      - name: Build application
+      - name: Build AuraWallpapers
         run: npm run build
 
 
-      - name: Upload artifacts
-
+      - name: Upload build files
         uses: actions/upload-artifact@v4
-
         with:
-
           name: AuraWallpapers-${{ matrix.os }}
-
           path: release/
+          if-no-files-found: error
