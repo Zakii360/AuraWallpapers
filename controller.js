@@ -1,222 +1,175 @@
-const WallpaperEngine =
-    require("./engine");
-
-const Wallpaper =
-    require("./wallpaper");
-
-const SettingsManager =
-    require("./settings");
-
-
+const WallpaperEngine = require("./engine");
+const Wallpaper = require("./wallpaper");
+const SettingsManager = require("./settings");
 
 class AuraController {
 
+    constructor() {
 
-    constructor(){
+        this.engine = new WallpaperEngine();
+        this.wallpaper = new Wallpaper();
+        this.settings = new SettingsManager();
 
-
-        this.engine =
-            new WallpaperEngine();
-
-
-
-        this.wallpaper =
-            new Wallpaper();
-
-
-
-        this.settings =
-            new SettingsManager();
-
-
+        this.current = null;
 
     }
 
 
 
-
-
-    initialize(){
-
+    initialize() {
 
         this.settings.load();
 
-
         this.engine.loadWallpapers();
 
+        const saved = this.settings.get("currentWallpaper");
 
+        if (saved) {
 
-    }
+            const wallpaper = this.engine.getWallpaper(saved);
 
+            if (wallpaper) {
 
+                this.current = wallpaper;
 
-
-
-    getWallpapers(){
-
-
-        return this.engine.availableWallpapers;
-
-
-    }
-
-
-
-
-
-    applyWallpaper(id){
-
-
-        const wallpaper =
-            this.engine.loadScene(
-
-                id,
-
-                this.settings.getEffects(id)
-
-            );
-
-
-
-        if(!wallpaper){
-
-
-            throw new Error(
-                "Wallpaper not found"
-            );
-
+            }
 
         }
 
+    }
 
 
 
-        this.wallpaper.close();
+    getWallpapers() {
+
+        return this.engine.availableWallpapers;
+
+    }
 
 
 
-        const running =
-            this.wallpaper.create(
-                wallpaper
-            );
+    applyWallpaper(id) {
 
+        const wallpaper =
+            this.engine.setWallpaper(id);
 
+        if (!wallpaper) {
+
+            throw new Error(`Wallpaper "${id}" not found.`);
+
+        }
+
+        this.closeWallpaper();
+
+        this.wallpaper.create(wallpaper);
+
+        this.current = wallpaper;
 
         this.settings.set(
-
             "currentWallpaper",
-
             id
-
         );
 
-
-
-        return {
-
-
-            id,
-
-
-            running:
-                !!running
-
-
-        };
-
+        return wallpaper;
 
     }
 
 
 
-
-
-    closeWallpaper(){
-
+    closeWallpaper() {
 
         this.wallpaper.close();
 
+        this.current = null;
 
     }
 
 
 
+    toggleWallpaper() {
 
+        if (this.current) {
 
-    refresh(){
+            this.closeWallpaper();
 
+            return false;
 
-        return this.engine.refresh();
+        }
 
+        const saved =
+            this.settings.get("currentWallpaper");
+
+        if (!saved) {
+
+            return false;
+
+        }
+
+        return !!this.applyWallpaper(saved);
 
     }
 
 
 
+    refresh() {
+
+        this.engine.loadWallpapers();
+
+        return this.engine.availableWallpapers;
+
+    }
 
 
-    getSettings(){
 
+    getSettings() {
 
         return this.settings.settings;
 
+    }
+
+
+
+    updateSettings(values) {
+
+        return this.settings.update(values);
 
     }
 
 
 
+    getWallpaperEffects(id) {
 
-
-    updateSettings(values){
-
-
-        return this.settings.update(
-            values
-        );
-
+        return this.settings.getEffects(id);
 
     }
 
 
 
-
-
-    getWallpaperEffects(id){
-
-
-        return this.settings.getEffects(
-            id
-        );
-
-
-    }
-
-
-
-
-
-    updateWallpaperEffects(
-        id,
-        effects
-    ){
-
+    updateWallpaperEffects(id, effects) {
 
         return this.settings.setEffects(
-
             id,
-
             effects
-
         );
-
 
     }
 
 
+
+    getCurrentWallpaper() {
+
+        return this.current;
+
+    }
+
+
+
+    isWallpaperRunning() {
+
+        return this.current !== null;
+
+    }
 
 }
 
-
-
-module.exports =
-    AuraController;
+module.exports = AuraController;
