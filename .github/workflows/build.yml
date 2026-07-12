@@ -15,7 +15,6 @@ jobs:
     strategy:
 
       matrix:
-
         os:
           - windows-latest
           - ubuntu-latest
@@ -39,8 +38,6 @@ jobs:
 
           node-version: 20
 
-          cache: npm
-
 
 
       - name: Install dependencies
@@ -48,7 +45,7 @@ jobs:
 
 
 
-      - name: Build application
+      - name: Build AuraWallpapers
         run: npm run build
 
         env:
@@ -57,12 +54,11 @@ jobs:
 
 
 
-      - name: Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
 
         with:
 
           name: AuraWallpapers-${{ matrix.os }}
 
-          path: |
-            dist/*
+          path: dist/
