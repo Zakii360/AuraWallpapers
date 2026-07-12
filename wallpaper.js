@@ -8,6 +8,7 @@ const path = require("path");
 
 class WallpaperEngine {
 
+
     constructor(desktopManager = null) {
 
         this.window = null;
@@ -18,9 +19,12 @@ class WallpaperEngine {
 
 
 
+
     async start(wallpaper) {
 
+
         await this.stop();
+
 
 
         const display =
@@ -31,6 +35,7 @@ class WallpaperEngine {
             display.bounds;
 
 
+
         this.window =
             new BrowserWindow({
 
@@ -39,6 +44,7 @@ class WallpaperEngine {
 
                 width: bounds.width,
                 height: bounds.height,
+
 
                 frame: false,
 
@@ -67,39 +73,56 @@ class WallpaperEngine {
 
 
 
+
         this.window.setIgnoreMouseEvents(
             true
         );
 
 
+
         await this.window.loadFile(
+
             path.join(
                 wallpaper.path,
                 wallpaper.file
             )
+
         );
+
+
 
 
         this.window.once(
             "ready-to-show",
             () => {
 
-                this.window.show();
+
+                const nativeHandle =
+                    this.window.getNativeWindowHandle();
+
 
 
                 if(this.desktopManager) {
 
                     this.desktopManager.attach(
-                        this.window
+                        nativeHandle
                     );
 
                 }
+
+
+
+                this.window.show();
+
 
             }
         );
 
 
-        this.currentWallpaper = wallpaper;
+
+        this.currentWallpaper =
+            wallpaper;
+
 
 
         return true;
@@ -109,34 +132,46 @@ class WallpaperEngine {
 
 
 
-    async stop() {
 
-        if(!this.window) {
+
+    async stop(){
+
+
+        if(!this.window){
 
             return;
 
         }
 
 
-        if(this.desktopManager) {
 
-            this.desktopManager.detach();
+        if(this.desktopManager){
+
+            this.desktopManager.detach(
+                this.window.getNativeWindowHandle()
+            );
 
         }
 
 
-        this.window.close();
+
+        this.window.destroy();
+
 
         this.window = null;
 
+
         this.currentWallpaper = null;
+
 
     }
 
 
 
 
-    restart(wallpaper) {
+
+
+    restart(wallpaper){
 
         return this.start(
             wallpaper
@@ -147,7 +182,8 @@ class WallpaperEngine {
 
 
 
-    getCurrent() {
+
+    getCurrent(){
 
         return this.currentWallpaper;
 
@@ -155,11 +191,14 @@ class WallpaperEngine {
 
 
 
-    isRunning() {
+
+
+    isRunning(){
 
         return this.window !== null;
 
     }
+
 
 }
 
