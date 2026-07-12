@@ -3,30 +3,183 @@
 
 <head>
 
+<meta charset="UTF-8">
+
+<title>AuraWallpapers Example</title>
+
+
 <style>
 
 html,
 body {
 
-    margin:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    background:#050505;
+    margin: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+
+    background: #000;
 
 }
 
 
-canvas {
 
-    width:100%;
-    height:100%;
-    display:block;
+#background {
+
+    position: absolute;
+
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    transform: scale(1.05);
+
+    animation:
+        drift 30s infinite alternate ease-in-out;
 
 }
+
+
+
+.overlay {
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+        radial-gradient(
+            circle at center,
+            transparent 25%,
+            rgba(0,0,0,0.55)
+        );
+
+    pointer-events: none;
+
+}
+
+
+
+
+
+.particles {
+
+    position: absolute;
+
+    inset: 0;
+
+    pointer-events: none;
+
+}
+
+
+
+.particle {
+
+    position: absolute;
+
+    width: 3px;
+
+    height: 3px;
+
+
+    background:
+        rgba(255,255,255,0.75);
+
+
+    border-radius: 50%;
+
+
+    filter:
+        blur(.2px);
+
+
+    animation:
+        float linear infinite;
+
+}
+
+
+
+
+@keyframes drift {
+
+
+    from {
+
+        transform:
+            scale(1.05)
+            translate3d(0,0,0);
+
+    }
+
+
+    to {
+
+        transform:
+            scale(1.15)
+            translate3d(-35px,-15px,0);
+
+    }
+
+
+}
+
+
+
+
+@keyframes float {
+
+
+    from {
+
+        transform:
+            translate3d(
+                0,
+                110vh,
+                0
+            );
+
+        opacity: 0;
+
+    }
+
+
+
+    15% {
+
+        opacity: .8;
+
+    }
+
+
+
+    to {
+
+        transform:
+            translate3d(
+                20px,
+                -10vh,
+                0
+            );
+
+        opacity: 0;
+
+    }
+
+
+}
+
+
 
 
 </style>
+
 
 </head>
 
@@ -34,151 +187,127 @@ canvas {
 <body>
 
 
-<canvas id="canvas"></canvas>
+<img
+    id="background"
+    src="image.png"
+    draggable="false"
+/>
+
+
+
+<div class="overlay"></div>
+
+
+<div
+    class="particles"
+    id="particles">
+</div>
+
+
 
 
 <script>
 
-const canvas =
-document.getElementById("canvas");
 
-
-const ctx =
-canvas.getContext("2d");
-
-
-let particles = [];
-
-
-
-function resize(){
-
-    canvas.width =
-        window.innerWidth;
-
-    canvas.height =
-        window.innerHeight;
-
-}
-
-
-window.onresize = resize;
-
-resize();
-
-
-
-for(let i=0;i<120;i++){
-
-    particles.push({
-
-        x:Math.random()*canvas.width,
-
-        y:Math.random()*canvas.height,
-
-        size:
-            Math.random()*3+1,
-
-        speed:
-            Math.random()*0.5+0.2
-
-    });
-
-}
-
-
-
-function draw(){
-
-    const time =
-        Date.now()*0.001;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
+const particleContainer =
+    document.getElementById(
+        "particles"
     );
 
 
-    const gradient =
-        ctx.createLinearGradient(
-            0,
-            0,
-            canvas.width,
-            canvas.height
+
+const particleCount = 100;
+
+
+
+for(
+    let i = 0;
+    i < particleCount;
+    i++
+){
+
+
+    const particle =
+        document.createElement(
+            "div"
         );
 
 
-    gradient.addColorStop(
-        0,
-        `hsl(${220+Math.sin(time)*20},70%,15%)`
-    );
 
-
-    gradient.addColorStop(
-        1,
-        `hsl(${280+Math.cos(time)*20},60%,8%)`
-    );
-
-
-    ctx.fillStyle =
-        gradient;
-
-
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
+    particle.className =
+        "particle";
 
 
 
-    particles.forEach(p=>{
+    particle.style.left =
+        Math.random() * 100 + "%";
 
 
-        p.y -= p.speed;
+
+    particle.style.animationDuration =
+        (
+            6 +
+            Math.random() * 18
+        )
+        + "s";
 
 
-        if(p.y < -10){
 
-            p.y =
-            canvas.height+10;
-
-        }
-
-
-        ctx.beginPath();
+    particle.style.animationDelay =
+        (
+            Math.random() * 15
+        )
+        + "s";
 
 
-        ctx.arc(
-            p.x,
-            p.y,
-            p.size,
-            0,
-            Math.PI*2
+
+    const size =
+        (
+            1 +
+            Math.random() * 4
         );
 
 
-        ctx.fillStyle =
-        "rgba(255,255,255,0.35)";
+
+    particle.style.width =
+        size + "px";
 
 
-        ctx.fill();
-
-
-    });
+    particle.style.height =
+        size + "px";
 
 
 
-    requestAnimationFrame(draw);
+    particleContainer.appendChild(
+        particle
+    );
+
 
 }
 
 
-draw();
+
+
+// pause animations when hidden
+// saves GPU usage like real wallpaper engines
+// real issue I had with other engines
+// clear taskbar won't be affected btw
+// ok this is too many comments...
+
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+
+        document.body.style.animationPlayState =
+            document.hidden
+                ? "paused"
+                : "running";
+
+
+    }
+);
 
 
 </script>
