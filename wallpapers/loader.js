@@ -1,127 +1,120 @@
-const fs = require("fs-extra");
+const fs = require("fs");
 const path = require("path");
+
 
 
 class WallpaperLoader {
 
 
-    constructor(directory){
+    constructor(){
 
-        this.directory = directory;
+
+        this.directory =
+            path.join(
+                __dirname
+            );
+
 
     }
+
 
 
 
     load(){
 
+
         if(!fs.existsSync(this.directory)){
 
-            fs.ensureDirSync(
-                this.directory
-            );
+
+            return [];
 
         }
 
 
-        const wallpapers = [];
+
+        return fs.readdirSync(
+            this.directory,
+            {
+                withFileTypes: true
+            }
+
+        )
+
+        .filter(
+            entry =>
+                entry.isDirectory()
+        )
+
+        .map(
+            entry => {
 
 
-        const entries =
-            fs.readdirSync(
-                this.directory
-            );
+                const folder =
+                    path.join(
+                        this.directory,
+                        entry.name
+                    );
 
 
 
-        entries.forEach(entry=>{
+                const file =
+                    path.join(
+                        folder,
+                        "wallpaper.html"
+                    );
 
 
-            const folder =
-                path.join(
-                    this.directory,
-                    entry
-                );
+
+                if(!fs.existsSync(file)){
+
+                    return null;
+
+                }
 
 
-            if(
-                !fs.statSync(folder).isDirectory()
-            ){
 
-                return;
+                return {
+
+                    id:
+                        entry.name
+                            .toLowerCase()
+                            .replace(
+                                /[^a-z0-9]+/g,
+                                "-"
+                            ),
+
+
+
+                    name:
+                        entry.name,
+
+
+
+                    path:
+                        folder,
+
+
+
+                    file:
+                        "wallpaper.html"
+
+
+                };
+
 
             }
 
+        )
 
+        .filter(Boolean);
 
-            const manifest =
-                path.join(
-                    folder,
-                    "wallpaper.json"
-                );
-
-
-
-            if(
-                !fs.existsSync(manifest)
-            ){
-
-                return;
-
-            }
-
-
-
-            const data =
-                fs.readJsonSync(
-                    manifest
-                );
-
-
-
-            wallpapers.push({
-
-                id: entry,
-
-                path: folder,
-
-                name:
-                    data.name || entry,
-
-                author:
-                    data.author || "Unknown",
-
-                type:
-                    data.type || "web",
-
-                file:
-                    data.file || "wallpaper.html"
-
-            });
-
-
-        });
-
-
-
-        return wallpapers;
 
     }
 
-
-
-    get(id){
-
-        return this.load()
-            .find(
-                wallpaper =>
-                    wallpaper.id === id
-            );
-
-    }
 
 
 }
+
 
 
 module.exports = WallpaperLoader;
