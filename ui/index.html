@@ -2,132 +2,266 @@
 <html>
 
 <head>
-    <title>AuraWallpapers</title>
 
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+
+<title>AuraWallpapers</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
 
 
 <body>
 
 
-<header>
+<div class="app">
 
-    <h1>AuraWallpapers</h1>
 
-    <p>
-        Open-source live wallpaper engine
-    </p>
+<aside class="sidebar">
 
-</header>
+
+    <div class="brand">
+
+
+        <img src="../assets/icon.png">
+
+
+        <div>
+
+            <h1>
+                AuraWallpapers
+            </h1>
+
+            <span>
+                Open-source wallpaper engine
+            </span>
+
+        </div>
+
+
+    </div>
+
+
+
+    <nav>
+
+
+        <button class="active">
+
+            Library
+
+        </button>
+
+
+
+        <button>
+
+            Settings
+
+        </button>
+
+
+    </nav>
+
+
+
+</aside>
+
+
 
 
 
 <main>
 
 
+
 <section class="library">
 
 
-    <h2>
-        Wallpapers
-    </h2>
-
-
-    <div
-        id="wallpaper-list"
-        class="wallpapers">
-    </div>
-
-
-</section>
-
-
-
-
-
-<section class="settings">
+<header>
 
 
     <h2>
-        Settings
+        Wallpaper Library
     </h2>
-
-
-
-    <label>
-
-        <input
-            id="startup"
-            type="checkbox"
-        >
-
-        Start with system
-
-    </label>
-
-
-
-
-    <br><br>
-
-
-
-
-    <label>
-        FPS Limit
-    </label>
-
-
-
-    <select id="fps">
-
-        <option value="30">
-            30 FPS
-        </option>
-
-
-        <option value="60">
-            60 FPS
-        </option>
-
-
-        <option value="120">
-            120 FPS
-        </option>
-
-    </select>
-
-
-
-
-    <br><br>
-
-
 
 
     <button id="refresh">
 
-        Refresh Library
+        Refresh
 
     </button>
 
 
+</header>
+
+
+
+
+<div class="wallpapers">
+
+
+</div>
+
 
 </section>
+
+
+
+
+
+
+<section class="panel">
+
+
+<h2>
+    Wallpaper Controls
+</h2>
+
+
+
+
+<div class="control">
+
+
+<label>
+    FPS Limit
+</label>
+
+
+<select id="fps">
+
+<option value="30">
+30 FPS
+</option>
+
+<option value="60">
+60 FPS
+</option>
+
+<option value="120">
+120 FPS
+</option>
+
+</select>
+
+
+</div>
+
+
+
+
+
+<div class="control">
+
+
+<label>
+
+<input 
+id="startup"
+type="checkbox"
+>
+
+
+Start AuraWallpapers with system
+
+
+</label>
+
+
+</div>
+
+
+
+
+
+<div class="effects">
+
+
+<h3>
+Effects
+</h3>
+
+
+
+<div>
+
+
+<label>
+Camera Movement
+</label>
+
+
+<input
+type="range"
+min="0"
+max="100"
+value="50"
+>
+
+
+</div>
+
+
+
+
+<div>
+
+
+<label>
+Rain Amount
+</label>
+
+
+<input
+type="range"
+min="0"
+max="500"
+value="100"
+>
+
+
+</div>
+
+
+
+
+<div>
+
+
+<label>
+Particles
+</label>
+
+
+<input
+type="range"
+min="0"
+max="300"
+value="80"
+>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+</section>
+
 
 
 </main>
 
 
 
+</div>
 
-
-<footer>
-
-    AuraWallpapers v2.0.0
-
-</footer>
 
 
 
