@@ -5,30 +5,50 @@ const {
 
 const path = require("path");
 
+const DesktopManager =
+    require("./desktop");
 
-class WallpaperEngine {
 
 
-    constructor(desktopManager = null) {
+class Wallpaper {
 
-        this.window = null;
-        this.currentWallpaper = null;
-        this.desktopManager = desktopManager;
+
+    constructor(){
+
+
+        this.window =
+            null;
+
+
+        this.desktop =
+            new DesktopManager();
+
+
+        this.current =
+            null;
+
 
     }
 
 
 
 
-    async start(wallpaper) {
+
+    create(wallpaper){
 
 
-        await this.stop();
+        this.close();
+
+
+
+        this.current =
+            wallpaper;
 
 
 
         const display =
             screen.getPrimaryDisplay();
+
 
 
         const bounds =
@@ -40,30 +60,47 @@ class WallpaperEngine {
             new BrowserWindow({
 
                 x: bounds.x,
+
                 y: bounds.y,
 
                 width: bounds.width,
+
                 height: bounds.height,
 
 
                 frame: false,
 
+
                 transparent: false,
 
-                show: false,
-
-                focusable: false,
-
-                skipTaskbar: true,
 
                 resizable: false,
+
 
                 movable: false,
 
 
+                minimizable: false,
+
+
+                maximizable: false,
+
+
+                fullscreenable: false,
+
+
+                show: false,
+
+
+                skipTaskbar: true,
+
+
+                focusable: false,
+
+
                 webPreferences: {
 
-                    sandbox: true,
+                    nodeIntegration: false,
 
                     contextIsolation: true
 
@@ -74,21 +111,18 @@ class WallpaperEngine {
 
 
 
+
         this.window.setIgnoreMouseEvents(
             true
         );
 
 
 
-        await this.window.loadFile(
-
-            path.join(
-                wallpaper.path,
-                wallpaper.file
-            )
-
+        this.window.loadFile(
+            wallpaper.html
+                ? wallpaper.html
+                : wallpaper
         );
-
 
 
 
@@ -97,22 +131,20 @@ class WallpaperEngine {
             () => {
 
 
-                const nativeHandle =
-                    this.window.getNativeWindowHandle();
+                if(this.window){
 
 
+                    this.window.show();
 
-                if(this.desktopManager) {
 
-                    this.desktopManager.attach(
-                        nativeHandle
+                    this.desktop.attach(
+
+                        this.window.getNativeWindowHandle()
+
                     );
 
+
                 }
-
-
-
-                this.window.show();
 
 
             }
@@ -120,12 +152,8 @@ class WallpaperEngine {
 
 
 
-        this.currentWallpaper =
-            wallpaper;
+        return this.window;
 
-
-
-        return true;
 
     }
 
@@ -133,59 +161,24 @@ class WallpaperEngine {
 
 
 
+    close(){
 
-    async stop(){
+
+        if(this.window){
 
 
-        if(!this.window){
+            this.desktop.detach();
 
-            return;
+
+            this.window.destroy();
+
+
+            this.window =
+                null;
+
 
         }
 
-
-
-        if(this.desktopManager){
-
-            this.desktopManager.detach(
-                this.window.getNativeWindowHandle()
-            );
-
-        }
-
-
-
-        this.window.destroy();
-
-
-        this.window = null;
-
-
-        this.currentWallpaper = null;
-
-
-    }
-
-
-
-
-
-
-    restart(wallpaper){
-
-        return this.start(
-            wallpaper
-        );
-
-    }
-
-
-
-
-
-    getCurrent(){
-
-        return this.currentWallpaper;
 
     }
 
@@ -195,12 +188,17 @@ class WallpaperEngine {
 
     isRunning(){
 
+
         return this.window !== null;
 
+
     }
+
 
 
 }
 
 
-module.exports = WallpaperEngine;
+
+module.exports =
+    Wallpaper;
