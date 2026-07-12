@@ -1,7 +1,6 @@
-const fs = require("fs");
-const path = require("path");
+const WallpaperLoader =
+    require("./wallpapers/loader");
 
-const WallpaperLoader = require("./wallpapers/loader");
 
 
 class WallpaperEngine {
@@ -14,12 +13,11 @@ class WallpaperEngine {
             new WallpaperLoader();
 
 
-        this.availableWallpapers =
-            [];
+
+        this.availableWallpapers = [];
 
 
-        this.current =
-            null;
+        this.current = null;
 
 
     }
@@ -32,7 +30,7 @@ class WallpaperEngine {
 
 
         this.availableWallpapers =
-            this.loader.loadAll();
+            this.loader.load();
 
 
 
@@ -72,9 +70,11 @@ class WallpaperEngine {
 
         if(!wallpaper){
 
+
             throw new Error(
-                `Wallpaper not found: ${id}`
+                "Wallpaper does not exist"
             );
+
 
         }
 
@@ -94,103 +94,30 @@ class WallpaperEngine {
 
 
 
-    getCurrent(){
-
-
-        return this.current;
-
-
-    }
-
-
-
-
-
-    loadScene(id, userSettings = {}){
-
-
-        const wallpaper =
-            this.getWallpaper(id);
-
-
-
-        if(!wallpaper){
-
-            throw new Error(
-                "Cannot load unknown wallpaper"
-            );
-
-        }
-
-
-
-
-        const scene =
-            JSON.parse(
-
-                JSON.stringify(
-                    wallpaper
-                )
-
-            );
-
-
-
-        if(scene.effects){
-
-
-            scene.effects =
-                this.mergeEffects(
-
-                    scene.effects,
-
-                    userSettings
-
-                );
-
-
-        }
-
-
-
-        return scene;
-
-
-    }
-
-
-
-
-
-    mergeEffects(
-        defaults,
-        overrides
+    loadScene(
+        id,
+        effects = null
     ){
 
 
-        const result =
-            {};
+        const wallpaper =
+            this.setWallpaper(id);
 
 
 
-        for(
-            const category
-            of Object.keys(defaults)
-        ){
+        return {
 
 
-            result[category] =
-                {
-                    ...defaults[category],
-                    ...(overrides[category] || {})
-                };
+            ...wallpaper,
 
 
-        }
+            effects:
+                effects ||
+                wallpaper.metadata.effects ||
+                {}
 
 
-
-        return result;
+        };
 
 
     }
@@ -206,6 +133,8 @@ class WallpaperEngine {
 
 
     }
+
+
 
 
 
