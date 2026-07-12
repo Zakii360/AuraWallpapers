@@ -2,60 +2,86 @@ const ffi = require("ffi-napi");
 const ref = require("ref-napi");
 
 
-const HWND = ref.types.longlong;
+
+const user32 =
+    ffi.Library(
+        "user32",
+        {
 
 
-const user32 = ffi.Library(
-    "user32",
-    {
+            FindWindowW: [
+                "pointer",
+                [
+                    "string",
+                    "string"
+                ]
+            ],
 
-        FindWindowW: [
-            HWND,
-            [
-                "string",
-                "string"
+
+
+            FindWindowExW: [
+                "pointer",
+                [
+                    "pointer",
+                    "pointer",
+                    "string",
+                    "string"
+                ]
+            ],
+
+
+
+            SendMessageTimeoutW: [
+                "uint32",
+                [
+                    "pointer",
+                    "uint32",
+                    "uint64",
+                    "pointer",
+                    "uint32",
+                    "uint32",
+                    "pointer"
+                ]
+            ],
+
+
+
+            SetParent: [
+                "pointer",
+                [
+                    "pointer",
+                    "pointer"
+                ]
+            ],
+
+
+
+            EnumWindows: [
+                "bool",
+                [
+                    "pointer",
+                    "int32"
+                ]
+            ],
+
+
+
+            GetClassNameW: [
+                "int32",
+                [
+                    "pointer",
+                    "pointer",
+                    "int32"
+                ]
             ]
-        ],
+
+        }
+    );
 
 
-        FindWindowExW: [
-            HWND,
-            HWND,
-            "string",
-            "string"
-        ],
 
-
-        SendMessageTimeoutW: [
-            HWND,
-            [
-                HWND,
-                "uint",
-                "uint64",
-                "uint64",
-                "uint",
-                "uint",
-                "pointer"
-            ]
-        ],
-
-
-        SetParent: [
-            HWND,
-            [
-                HWND,
-                HWND
-            ]
-        ],
-
-
-        GetShellWindow: [
-            HWND,
-            []
-        ]
-
-    }
-);
+const WM_SPAWN_WORKER =
+    0x052C;
 
 
 
@@ -64,14 +90,19 @@ class WindowsDesktop {
 
     constructor(){
 
-        this.worker = null;
+
+        this.worker =
+            null;
+
 
     }
 
 
 
 
+
     findWorker(){
+
 
         const progman =
             user32.FindWindowW(
@@ -80,49 +111,122 @@ class WindowsDesktop {
             );
 
 
+
         if(!progman){
 
+
             throw new Error(
-                "Could not find Progman"
+                "Progman not found"
             );
+
 
         }
 
 
 
-        // Ask Explorer to create WorkerW
-
         user32.SendMessageTimeoutW(
+
             progman,
-            0x052C,
+
+            WM_SPAWN_WORKER,
+
             0,
+
+            null,
+
             0,
-            0,
+
             1000,
+
             null
+
         );
 
 
 
         let worker =
-            user32.FindWindowExW(
-                0,
-                0,
-                "WorkerW",
-                null
+            null;
+
+
+
+        const callback =
+            ffi.Callback(
+
+                "bool",
+
+                [
+                    "pointer",
+                    "int32"
+                ],
+
+                (hwnd)=>{
+
+
+                    const shell =
+                        user32.FindWindowExW(
+
+                            hwnd,
+
+                            null,
+
+                            "SHELLDLL_DefView",
+
+                            null
+
+                        );
+
+
+
+                    if(shell){
+
+
+                        worker =
+                            user32.FindWindowExW(
+
+                                null,
+
+                                hwnd,
+
+                                "WorkerW",
+
+                                null
+
+                            );
+
+
+                    }
+
+
+
+                    return true;
+
+
+                }
+
             );
+
+
+
+        user32.EnumWindows(
+            callback,
+            0
+        );
+
 
 
         if(!worker){
 
-            throw new Error(
-                "WorkerW desktop layer not found"
-            );
+
+            worker =
+                progman;
+
 
         }
 
 
+
         return worker;
+
 
     }
 
@@ -139,47 +243,43 @@ class WindowsDesktop {
 
 
         user32.SetParent(
+
             hwnd,
+
             worker
+
         );
 
 
 
-        this.worker = worker;
+        this.worker =
+            worker;
+
 
 
         return true;
 
-    }
-
-
-
-
-
-    detach(hwnd){
-
-
-        if(!hwnd || !this.worker){
-
-            return;
-
-        }
-
-
-
-        user32.SetParent(
-            hwnd,
-            0
-        );
-
-
-        this.worker = null;
 
     }
+
+
+
+
+
+    detach(){
+
+
+        this.worker =
+            null;
+
+
+    }
+
 
 
 }
 
 
 
-module.exports = WindowsDesktop;
+module.exports =
+    new WindowsDesktop();
