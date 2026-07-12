@@ -1,11 +1,8 @@
 const WallpaperEngine =
     require("./engine");
 
-const WallpaperRenderer =
+const Wallpaper =
     require("./wallpaper");
-
-const DesktopManager =
-    require("./desktop");
 
 const SettingsManager =
     require("./settings");
@@ -18,20 +15,13 @@ class AuraController {
     constructor(){
 
 
-        this.desktop =
-            new DesktopManager();
-
-
-
-        this.renderer =
-            new WallpaperRenderer(
-                this.desktop
-            );
-
-
-
         this.engine =
             new WallpaperEngine();
+
+
+
+        this.wallpaper =
+            new Wallpaper();
 
 
 
@@ -40,10 +30,8 @@ class AuraController {
 
 
 
-        this.current =
-            null;
-
     }
+
 
 
 
@@ -54,35 +42,8 @@ class AuraController {
         this.settings.load();
 
 
-
         this.engine.loadWallpapers();
 
-
-
-        const saved =
-            this.settings.get(
-                "currentWallpaper"
-            );
-
-
-
-        if(saved){
-
-
-            const wallpaper =
-                this.engine.getWallpaper(
-                    saved
-                );
-
-
-            if(wallpaper){
-
-                this.current =
-                    wallpaper;
-
-            }
-
-        }
 
 
     }
@@ -93,7 +54,9 @@ class AuraController {
 
     getWallpapers(){
 
+
         return this.engine.availableWallpapers;
+
 
     }
 
@@ -101,45 +64,66 @@ class AuraController {
 
 
 
-    async applyWallpaper(id){
+    applyWallpaper(id){
 
 
         const wallpaper =
-            this.engine.getWallpaper(
-                id
+            this.engine.loadScene(
+
+                id,
+
+                this.settings.getEffects(id)
+
             );
 
 
 
         if(!wallpaper){
 
+
             throw new Error(
-                "Wallpaper not found: " + id
+                "Wallpaper not found"
             );
+
 
         }
 
 
 
-        await this.renderer.start(
-            wallpaper
-        );
+
+        this.wallpaper.close();
+
+
+
+        const running =
+            this.wallpaper.create(
+                wallpaper
+            );
 
 
 
         this.settings.set(
+
             "currentWallpaper",
+
             id
+
         );
 
 
 
-        this.current =
-            wallpaper;
+        return {
 
 
+            id,
 
-        return wallpaper;
+
+            running:
+                !!running
+
+
+        };
+
 
     }
 
@@ -150,7 +134,7 @@ class AuraController {
     closeWallpaper(){
 
 
-        this.renderer.stop();
+        this.wallpaper.close();
 
 
     }
@@ -161,7 +145,9 @@ class AuraController {
 
     refresh(){
 
+
         return this.engine.refresh();
+
 
     }
 
@@ -171,13 +157,66 @@ class AuraController {
 
     getSettings(){
 
+
         return this.settings.settings;
 
+
     }
+
+
+
+
+
+    updateSettings(values){
+
+
+        return this.settings.update(
+            values
+        );
+
+
+    }
+
+
+
+
+
+    getWallpaperEffects(id){
+
+
+        return this.settings.getEffects(
+            id
+        );
+
+
+    }
+
+
+
+
+
+    updateWallpaperEffects(
+        id,
+        effects
+    ){
+
+
+        return this.settings.setEffects(
+
+            id,
+
+            effects
+
+        );
+
+
+    }
+
 
 
 }
 
 
 
-module.exports = AuraController;
+module.exports =
+    AuraController;
