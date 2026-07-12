@@ -1,9 +1,9 @@
-const { BrowserWindow } = require("electron");
+const {
+    BrowserWindow,
+    screen
+} = require("electron");
+
 const path = require("path");
-
-const DesktopManager =
-    require("./desktop");
-
 
 
 class Wallpaper {
@@ -11,59 +11,47 @@ class Wallpaper {
 
     constructor(){
 
-
         this.window = null;
-
-
-        this.desktop =
-            new DesktopManager();
-
 
     }
 
 
 
-
-
-    create(scene){
+    create(wallpaper){
 
 
         this.close();
 
 
 
-        if(!scene || !scene.html){
+        const display =
+            screen.getPrimaryDisplay();
 
-            throw new Error(
-                "Invalid wallpaper scene"
-            );
 
-        }
+
+        const bounds =
+            display.bounds;
 
 
 
         this.window =
             new BrowserWindow({
 
+                x: bounds.x,
 
-                width:
-                    1920,
+                y: bounds.y,
 
+                width: bounds.width,
 
-                height:
-                    1080,
+                height: bounds.height,
 
 
                 frame:false,
 
-
                 transparent:false,
 
 
-                fullscreen:true,
-
-
-                show:false,
+                fullscreen:false,
 
 
                 resizable:false,
@@ -72,22 +60,34 @@ class Wallpaper {
                 movable:false,
 
 
-                webPreferences:{
+                minimizable:false,
 
+
+                maximizable:false,
+
+
+                closable:false,
+
+
+                focusable:false,
+
+
+                skipTaskbar:true,
+
+
+                show:false,
+
+
+                webPreferences:{
 
                     nodeIntegration:false,
 
-
                     contextIsolation:true
-
 
                 }
 
 
-
             });
-
-
 
 
 
@@ -96,11 +96,21 @@ class Wallpaper {
         );
 
 
-
         this.window.loadFile(
-            scene.html
-        );
 
+            path.join(
+
+                __dirname,
+
+                "wallpapers",
+
+                wallpaper.id,
+
+                "wallpaper.html"
+
+            )
+
+        );
 
 
 
@@ -112,52 +122,16 @@ class Wallpaper {
                 this.window.show();
 
 
-
-                try {
-
-
-                    this.desktop.attach(
-                        this.window
-                    );
-
-
-                }
-                catch(error){
-
-
-                    console.error(
-                        "Desktop attach failed:",
-                        error
-                    );
-
-
-                }
+                this.window.setAlwaysOnTop(
+                    false
+                );
 
 
             }
-
         );
-
-
-
-
-        this.window.on(
-            "closed",
-            ()=>{
-
-
-                this.window =
-                    null;
-
-
-            }
-
-        );
-
 
 
         return this.window;
-
 
     }
 
@@ -171,14 +145,10 @@ class Wallpaper {
         if(this.window){
 
 
-            this.window.removeAllListeners();
-
-
             this.window.destroy();
 
 
-            this.window =
-                null;
+            this.window=null;
 
 
         }
@@ -187,11 +157,7 @@ class Wallpaper {
     }
 
 
-
-
-
 }
-
 
 
 module.exports =
