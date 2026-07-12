@@ -21,19 +21,28 @@ class Wallpaper {
         this.window =
             new BrowserWindow({
 
-                fullscreen:true,
+                fullscreen: true,
 
-                frame:false,
+                frame: false,
 
-                show:true,
+                transparent: false,
 
-                alwaysOnTop:false,
+                show: false,
 
-                webPreferences:{
-                    backgroundThrottling:false
+                skipTaskbar: true,
+
+                webPreferences: {
+
+                    nodeIntegration: false,
+
+                    contextIsolation: true,
+
+                    backgroundThrottling: false
+
                 }
 
             });
+
 
 
         this.window.loadFile(
@@ -44,9 +53,31 @@ class Wallpaper {
         );
 
 
+        this.window.once(
+            "ready-to-show",
+            () => {
+
+                this.window.show();
+
+            }
+        );
+
+
+
+        this.window.on(
+            "closed",
+            () => {
+
+                this.window = null;
+
+            }
+        );
+
+
         return this.window;
 
     }
+
 
 
 
@@ -54,13 +85,14 @@ class Wallpaper {
 
         if(this.window){
 
-            this.window.close();
+            this.window.destroy();
 
-            this.window=null;
+            this.window = null;
 
         }
 
     }
+
 
 
 }
