@@ -1,4 +1,5 @@
-const { exec } = require("child_process");
+const WindowsDesktop =
+    require("./native/windows/desktop");
 
 
 class DesktopManager {
@@ -6,7 +7,17 @@ class DesktopManager {
 
     constructor(){
 
-        this.wallpaperWindow = null;
+        this.platformHandler = null;
+
+        this.attachedWindow = null;
+
+
+        if(process.platform === "win32") {
+
+            this.platformHandler =
+                new WindowsDesktop();
+
+        }
 
     }
 
@@ -14,68 +25,60 @@ class DesktopManager {
 
     attach(window){
 
-        this.wallpaperWindow = window;
+        if(!window) {
 
-    }
-
-
-
-    setBehindDesktop(){
-
-        if(!this.wallpaperWindow){
-            return false;
-        }
-
-
-        if(process.platform !== "win32"){
-
-            console.log(
-                "Desktop attachment is only available on Windows."
+            throw new Error(
+                "Cannot attach empty wallpaper window"
             );
 
-            return false;
+        }
+
+
+        this.attachedWindow = window;
+
+
+        if(this.platformHandler) {
+
+            return this.platformHandler.attach(
+                window
+            );
 
         }
 
 
-        /*
-            Windows desktop embedding placeholder.
-
-            The actual WorkerW attachment requires a native
-            Win32 bridge. This keeps the engine architecture
-            clean so the native layer can be added later.
-        */
-
-
-        console.log(
-            "Preparing AuraWallpapers desktop layer..."
-        );
-
-
-        this.wallpaperWindow.setAlwaysOnTop(
-            false
-        );
-
-
-        this.wallpaperWindow.setSkipTaskbar(
-            true
-        );
-
-
-        return true;
+        return false;
 
     }
+
 
 
 
     detach(){
 
-        this.wallpaperWindow = null;
+        if(this.platformHandler) {
+
+            this.platformHandler.detach();
+
+        }
+
+
+        this.attachedWindow = null;
 
     }
 
 
+
+
+    isAttached(){
+
+        return this.attachedWindow !== null;
+
+    }
+
+
+
 }
+
 
 
 module.exports = DesktopManager;
