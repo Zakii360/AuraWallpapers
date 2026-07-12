@@ -4,6 +4,7 @@ const {
 } = require("electron");
 
 const path = require("path");
+const fs = require("fs");
 
 const DesktopManager =
     require("./desktop");
@@ -16,16 +17,12 @@ class Wallpaper {
     constructor(){
 
 
-        this.window =
-            null;
+        this.instances =
+            new Map();
 
 
         this.desktop =
             new DesktopManager();
-
-
-        this.current =
-            null;
 
 
     }
@@ -37,18 +34,52 @@ class Wallpaper {
     create(wallpaper){
 
 
-        this.close();
+        const displays =
+            screen.getAllDisplays();
 
 
 
-        this.current =
-            wallpaper;
+        const created = [];
 
 
 
-        const display =
-            screen.getPrimaryDisplay();
+        for(const display of displays){
 
+
+            const window =
+                this.createWindow(
+                    wallpaper,
+                    display
+                );
+
+
+
+            this.instances.set(
+                display.id,
+                window
+            );
+
+
+            created.push(window);
+
+
+        }
+
+
+
+        return created;
+
+
+    }
+
+
+
+
+
+    createWindow(
+        wallpaper,
+        display
+    ){
 
 
         const bounds =
@@ -56,55 +87,60 @@ class Wallpaper {
 
 
 
-        this.window =
+        const win =
             new BrowserWindow({
 
-                x: bounds.x,
 
-                y: bounds.y,
-
-                width: bounds.width,
-
-                height: bounds.height,
+                x:
+                    bounds.x,
 
 
-                frame: false,
+                y:
+                    bounds.y,
 
 
-                transparent: false,
+                width:
+                    bounds.width,
 
 
-                resizable: false,
+                height:
+                    bounds.height,
 
 
-                movable: false,
+
+                frame:false,
 
 
-                minimizable: false,
+                fullscreen:true,
 
 
-                maximizable: false,
+                kiosk:true,
 
 
-                fullscreenable: false,
+                show:false,
 
 
-                show: false,
+                transparent:false,
 
 
-                skipTaskbar: true,
+                skipTaskbar:true,
 
 
-                focusable: false,
+                focusable:false,
 
 
-                webPreferences: {
 
-                    nodeIntegration: false,
+                webPreferences:{
 
-                    contextIsolation: true
+
+                    contextIsolation:false,
+
+
+                    nodeIntegration:true
+
 
                 }
+
 
             });
 
@@ -112,47 +148,107 @@ class Wallpaper {
 
 
 
-        this.window.setIgnoreMouseEvents(
-            true
-        );
+        const data =
+            Buffer.from(
+
+                JSON.stringify({
+
+                    id:
+                        wallpaper.id,
+
+
+                    name:
+                        wallpaper.name,
+
+
+                    path:
+                        wallpaper.path,
+
+
+                    image:
+                        wallpaper.image,
+
+
+                    effects:
+                        wallpaper.effects || {}
+
+                })
+
+            )
+            .toString(
+                "base64"
+            );
 
 
 
-        this.window.loadFile(
-            wallpaper.html
-                ? wallpaper.html
-                : wallpaper
-        );
 
 
+        win.loadFile(
 
-        this.window.once(
-            "ready-to-show",
-            () => {
+            wallpaper.html,
 
+            {
 
-                if(this.window){
+                query:{
 
-
-                    this.window.show();
-
-
-                    this.desktop.attach(
-
-                        this.window.getNativeWindowHandle()
-
-                    );
-
+                    aura:
+                        data
 
                 }
 
-
             }
+
         );
 
 
 
-        return this.window;
+
+
+        win.once(
+
+            "ready-to-show",
+
+            ()=>{
+
+
+                win.show();
+
+
+
+                this.desktop.attach(
+
+                    win.getNativeWindowHandle()
+
+                );
+
+
+            }
+
+        );
+
+
+
+
+
+        win.on(
+
+            "closed",
+
+            ()=>{
+
+
+                this.instances.delete(
+                    display.id
+                );
+
+
+            }
+
+        );
+
+
+
+        return win;
 
 
     }
@@ -164,20 +260,26 @@ class Wallpaper {
     close(){
 
 
-        if(this.window){
+        for(
+            const window
+            of this.instances.values()
+        ){
 
 
-            this.desktop.detach();
+            if(!window.isDestroyed()){
 
 
-            this.window.destroy();
+                window.close();
 
 
-            this.window =
-                null;
+            }
 
 
         }
+
+
+
+        this.instances.clear();
 
 
     }
@@ -189,7 +291,9 @@ class Wallpaper {
     isRunning(){
 
 
-        return this.window !== null;
+        return (
+            this.instances.size > 0
+        );
 
 
     }
