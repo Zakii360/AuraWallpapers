@@ -9,8 +9,9 @@ const user32 =
         {
 
 
-            FindWindowW: [
-                "pointer",
+            "FindWindowW":
+            [
+                "long",
                 [
                     "string",
                     "string"
@@ -19,11 +20,12 @@ const user32 =
 
 
 
-            FindWindowExW: [
-                "pointer",
+            "FindWindowExW":
+            [
+                "long",
                 [
-                    "pointer",
-                    "pointer",
+                    "long",
+                    "long",
                     "string",
                     "string"
                 ]
@@ -31,68 +33,58 @@ const user32 =
 
 
 
-            SendMessageTimeoutW: [
-                "uint32",
+            "SendMessageTimeoutW":
+            [
+                "long",
                 [
-                    "pointer",
-                    "uint32",
-                    "uint64",
-                    "pointer",
-                    "uint32",
-                    "uint32",
-                    "pointer"
+                    "long",
+                    "int",
+                    "int",
+                    "int",
+                    "int",
+                    "int",
+                    "long"
                 ]
             ],
 
 
 
-            SetParent: [
-                "pointer",
+            "SetParent":
+            [
+                "long",
                 [
-                    "pointer",
-                    "pointer"
+                    "long",
+                    "long"
                 ]
             ],
 
 
 
-            EnumWindows: [
+            "ShowWindow":
+            [
                 "bool",
                 [
-                    "pointer",
-                    "int32"
-                ]
-            ],
-
-
-
-            GetClassNameW: [
-                "int32",
-                [
-                    "pointer",
-                    "pointer",
-                    "int32"
+                    "long",
+                    "int"
                 ]
             ]
 
         }
+
     );
 
 
-
-const WM_SPAWN_WORKER =
-    0x052C;
 
 
 
 class WindowsDesktop {
 
 
+
     constructor(){
 
 
-        this.worker =
-            null;
+        this.worker = null;
 
 
     }
@@ -101,7 +93,7 @@ class WindowsDesktop {
 
 
 
-    findWorker(){
+    createWorker(){
 
 
         const progman =
@@ -114,103 +106,50 @@ class WindowsDesktop {
 
         if(!progman){
 
-
             throw new Error(
                 "Progman not found"
             );
-
 
         }
 
 
 
+        // Ask Explorer to create WorkerW layer
+
         user32.SendMessageTimeoutW(
 
             progman,
 
-            WM_SPAWN_WORKER,
+            0x052C,
 
             0,
 
-            null,
+            0,
 
             0,
 
             1000,
 
-            null
+            0
 
         );
+
+
 
 
 
         let worker =
-            null;
+            user32.FindWindowExW(
 
+                0,
 
+                0,
 
-        const callback =
-            ffi.Callback(
+                "WorkerW",
 
-                "bool",
-
-                [
-                    "pointer",
-                    "int32"
-                ],
-
-                (hwnd)=>{
-
-
-                    const shell =
-                        user32.FindWindowExW(
-
-                            hwnd,
-
-                            null,
-
-                            "SHELLDLL_DefView",
-
-                            null
-
-                        );
-
-
-
-                    if(shell){
-
-
-                        worker =
-                            user32.FindWindowExW(
-
-                                null,
-
-                                hwnd,
-
-                                "WorkerW",
-
-                                null
-
-                            );
-
-
-                    }
-
-
-
-                    return true;
-
-
-                }
+                null
 
             );
-
-
-
-        user32.EnumWindows(
-            callback,
-            0
-        );
 
 
 
@@ -225,6 +164,11 @@ class WindowsDesktop {
 
 
 
+        this.worker =
+            worker;
+
+
+
         return worker;
 
 
@@ -234,26 +178,52 @@ class WindowsDesktop {
 
 
 
-    attach(hwnd){
+    attach(browserWindow){
 
 
-        const worker =
-            this.findWorker();
+        if(!this.worker){
+
+
+            this.createWorker();
+
+
+        }
+
+
+
+
+
+        const hwnd =
+            browserWindow.getNativeWindowHandle();
+
+
+
+        const windowHandle =
+            ref.readInt32(
+                hwnd,
+                0
+            );
+
 
 
 
         user32.SetParent(
 
-            hwnd,
+            windowHandle,
 
-            worker
+            this.worker
 
         );
 
 
 
-        this.worker =
-            worker;
+        user32.ShowWindow(
+
+            windowHandle,
+
+            5
+
+        );
 
 
 
@@ -282,4 +252,4 @@ class WindowsDesktop {
 
 
 module.exports =
-    new WindowsDesktop();
+    WindowsDesktop;
