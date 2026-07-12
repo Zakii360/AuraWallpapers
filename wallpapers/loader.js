@@ -8,10 +8,8 @@ class WallpaperLoader {
     constructor(){
 
 
-        this.wallpaperDirectory =
-            path.join(
-                __dirname
-            );
+        this.directory =
+            __dirname;
 
 
     }
@@ -20,121 +18,117 @@ class WallpaperLoader {
 
 
 
-    loadAll(){
+    load(){
 
 
-        if(!fs.existsSync(this.wallpaperDirectory)){
-
-            return [];
-
-        }
+        const wallpapers = [];
 
 
 
         const folders =
             fs.readdirSync(
-                this.wallpaperDirectory,
+                this.directory,
                 {
-                    withFileTypes: true
+                    withFileTypes:true
                 }
-            )
-            .filter(
-                entry =>
-                    entry.isDirectory()
             );
 
 
 
-        return folders
-            .map(
-                folder =>
-                    this.load(
-                        folder.name
-                    )
-            )
-            .filter(
-                wallpaper =>
-                    wallpaper !== null
-            );
+        for(const folder of folders){
 
 
-    }
+            if(!folder.isDirectory())
+                continue;
 
 
 
-
-
-    load(id){
-
-
-        const folder =
-            path.join(
-                this.wallpaperDirectory,
-                id
-            );
+            const folderPath =
+                path.join(
+                    this.directory,
+                    folder.name
+                );
 
 
 
-        const configFile =
-            path.join(
-                folder,
-                "wallpaper.json"
-            );
+            const configPath =
+                path.join(
+                    folderPath,
+                    "wallpaper.json"
+                );
 
 
 
-        const htmlFile =
-            path.join(
-                folder,
-                "wallpaper.html"
-            );
+            if(!fs.existsSync(configPath))
+                continue;
 
-
-
-        if(!fs.existsSync(htmlFile)){
-
-
-            console.warn(
-                `Skipping ${id}: missing wallpaper.html`
-            );
-
-
-            return null;
-
-
-        }
-
-
-
-
-        let config =
-            {};
-
-
-
-        if(fs.existsSync(configFile)){
 
 
             try {
 
 
-                config =
+                const config =
                     JSON.parse(
-
                         fs.readFileSync(
-                            configFile,
+                            configPath,
                             "utf8"
                         )
-
                     );
 
 
-            } catch(error){
+
+                const html =
+                    path.join(
+                        folderPath,
+                        config.file || "wallpaper.html"
+                    );
+
+
+
+                if(!fs.existsSync(html))
+                    continue;
+
+
+
+                wallpapers.push({
+
+
+                    id:
+                        folder.name,
+
+
+                    path:
+                        folderPath,
+
+
+                    html,
+
+
+                    preview:
+                        path.join(
+                            folderPath,
+                            config.preview || "image.png"
+                        ),
+
+
+                    metadata:
+                        config
+
+
+                });
+
+
+
+            }
+            catch(error){
 
 
                 console.error(
-                    `Invalid wallpaper.json in ${id}`,
+
+                    "Failed loading wallpaper:",
+                    folder.name,
                     error
+
                 );
 
 
@@ -145,66 +139,10 @@ class WallpaperLoader {
 
 
 
-
-
-        const image =
-            config.image
-                ? path.join(
-                    folder,
-                    config.image
-                )
-                : null;
-
-
-
-
-        return {
-
-
-            id,
-
-
-            name:
-                config.name ||
-                id,
-
-
-
-            author:
-                config.author ||
-                "Unknown",
-
-
-
-            type:
-                config.type ||
-                "scene",
-
-
-
-            path:
-                folder,
-
-
-
-            html:
-                htmlFile,
-
-
-
-            image,
-
-
-
-            effects:
-                config.effects ||
-                {}
-
-        };
+        return wallpapers;
 
 
     }
-
 
 
 
