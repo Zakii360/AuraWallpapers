@@ -3,79 +3,46 @@ const path = require("path");
 const { app } = require("electron");
 
 
+
 class SettingsManager {
 
 
-    constructor() {
+    constructor(){
 
 
-        this.basePath =
+        this.file =
             path.join(
-                app.getPath("userData"),
-                "settings"
-            );
 
+                app.getPath(
+                    "userData"
+                ),
 
-        this.appFile =
-            path.join(
-                this.basePath,
-                "app.json"
-            );
+                "settings.json"
 
-
-        this.wallpaperPath =
-            path.join(
-                this.basePath,
-                "wallpapers"
             );
 
 
 
         this.settings = {
 
-            startup: false,
 
-            fps: 60,
+            currentWallpaper:
+                null,
 
-            currentWallpaper: null
+
+            fps:
+                60,
+
+
+            startup:
+                false,
+
+
+            effects:
+                {}
+
 
         };
-
-
-
-        this.ensureDirectories();
-
-    }
-
-
-
-
-    ensureDirectories(){
-
-
-        if(!fs.existsSync(this.basePath)){
-
-            fs.mkdirSync(
-                this.basePath,
-                {
-                    recursive: true
-                }
-            );
-
-        }
-
-
-
-        if(!fs.existsSync(this.wallpaperPath)){
-
-            fs.mkdirSync(
-                this.wallpaperPath,
-                {
-                    recursive: true
-                }
-            );
-
-        }
 
 
     }
@@ -90,34 +57,61 @@ class SettingsManager {
         try {
 
 
-            if(fs.existsSync(this.appFile)){
+            if(
+                fs.existsSync(
+                    this.file
+                )
+            ){
 
 
-                const data =
-                    fs.readFileSync(
-                        this.appFile,
-                        "utf8"
+                const saved =
+                    JSON.parse(
+
+                        fs.readFileSync(
+                            this.file,
+                            "utf8"
+                        )
+
                     );
+
 
 
                 this.settings =
                     {
+
                         ...this.settings,
-                        ...JSON.parse(data)
+
+                        ...saved
+
                     };
+
+
+            }
+
+            else {
+
+
+                this.save();
 
 
             }
 
 
 
-        } catch(error){
+        }
+
+        catch(error){
 
 
             console.error(
+
                 "Failed loading settings:",
                 error
+
             );
+
+
+            this.save();
 
 
         }
@@ -136,14 +130,47 @@ class SettingsManager {
     save(){
 
 
+        const directory =
+            path.dirname(
+                this.file
+            );
+
+
+
+        if(
+            !fs.existsSync(
+                directory
+            )
+        ){
+
+
+            fs.mkdirSync(
+
+                directory,
+
+                {
+                    recursive:true
+                }
+
+            );
+
+
+        }
+
+
+
         fs.writeFileSync(
 
-            this.appFile,
+            this.file,
 
             JSON.stringify(
+
                 this.settings,
+
                 null,
+
                 4
+
             )
 
         );
@@ -174,54 +201,12 @@ class SettingsManager {
             value;
 
 
+
         this.save();
 
 
-    }
 
-
-
-
-
-    getWallpaperSettings(id){
-
-
-        const file =
-            path.join(
-                this.wallpaperPath,
-                `${id}.json`
-            );
-
-
-
-        if(!fs.existsSync(file)){
-
-
-            return {};
-
-
-        }
-
-
-
-        try {
-
-
-            return JSON.parse(
-                fs.readFileSync(
-                    file,
-                    "utf8"
-                )
-            );
-
-
-        } catch {
-
-
-            return {};
-
-
-        }
+        return true;
 
 
     }
@@ -230,31 +215,72 @@ class SettingsManager {
 
 
 
-    setWallpaperSettings(id, settings){
+    update(values){
 
 
-        const file =
-            path.join(
-                this.wallpaperPath,
-                `${id}.json`
-            );
+        this.settings =
+            {
+
+
+                ...this.settings,
+
+
+                ...values
+
+
+            };
 
 
 
-        fs.writeFileSync(
+        this.save();
 
-            file,
 
-            JSON.stringify(
-                settings,
-                null,
-                4
-            )
+
+        return this.settings;
+
+
+    }
+
+
+
+
+
+    getEffects(id){
+
+
+        return (
+
+            this.settings.effects[id]
+
+            ||
+
+            {}
 
         );
 
 
     }
+
+
+
+
+
+    setEffects(
+        id,
+        effects
+    ){
+
+
+        this.settings.effects[id] =
+            effects;
+
+
+
+        this.save();
+
+
+    }
+
 
 
 
