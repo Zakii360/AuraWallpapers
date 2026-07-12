@@ -2,12 +2,15 @@ const ffi = require("ffi-napi");
 const ref = require("ref-napi");
 
 
+const HWND = ref.types.longlong;
+
+
 const user32 = ffi.Library(
     "user32",
     {
 
-        "FindWindowW": [
-            "long",
+        FindWindowW: [
+            HWND,
             [
                 "string",
                 "string"
@@ -15,23 +18,40 @@ const user32 = ffi.Library(
         ],
 
 
-        "FindWindowExW": [
-            "long",
+        FindWindowExW: [
+            HWND,
+            HWND,
+            "string",
+            "string"
+        ],
+
+
+        SendMessageTimeoutW: [
+            HWND,
             [
-                "long",
-                "long",
-                "string",
-                "string"
+                HWND,
+                "uint",
+                "uint64",
+                "uint64",
+                "uint",
+                "uint",
+                "pointer"
             ]
         ],
 
 
-        "SetParent": [
-            "long",
+        SetParent: [
+            HWND,
             [
-                "long",
-                "long"
+                HWND,
+                HWND
             ]
+        ],
+
+
+        GetShellWindow: [
+            HWND,
+            []
         ]
 
     }
@@ -50,7 +70,8 @@ class WindowsDesktop {
 
 
 
-    findDesktop(){
+
+    findWorker(){
 
         const progman =
             user32.FindWindowW(
@@ -62,32 +83,69 @@ class WindowsDesktop {
         if(!progman){
 
             throw new Error(
-                "Windows desktop window not found"
+                "Could not find Progman"
             );
 
         }
 
 
-        return progman;
+
+        // Ask Explorer to create WorkerW
+
+        user32.SendMessageTimeoutW(
+            progman,
+            0x052C,
+            0,
+            0,
+            0,
+            1000,
+            null
+        );
+
+
+
+        let worker =
+            user32.FindWindowExW(
+                0,
+                0,
+                "WorkerW",
+                null
+            );
+
+
+        if(!worker){
+
+            throw new Error(
+                "WorkerW desktop layer not found"
+            );
+
+        }
+
+
+        return worker;
 
     }
+
+
 
 
 
     attach(hwnd){
 
 
-        const desktop =
-            this.findDesktop();
+        const worker =
+            this.findWorker();
+
 
 
         user32.SetParent(
             hwnd,
-            desktop
+            worker
         );
 
 
-        this.worker = hwnd;
+
+        this.worker = worker;
 
 
         return true;
@@ -96,7 +154,24 @@ class WindowsDesktop {
 
 
 
-    detach(){
+
+
+    detach(hwnd){
+
+
+        if(!hwnd || !this.worker){
+
+            return;
+
+        }
+
+
+
+        user32.SetParent(
+            hwnd,
+            0
+        );
+
 
         this.worker = null;
 
