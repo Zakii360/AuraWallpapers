@@ -1,33 +1,122 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
-function createWindow() {
+const AuraController = require("./controller");
 
-    const window = new BrowserWindow({
+
+let mainWindow;
+let controller;
+
+
+
+function createWindow(){
+
+    mainWindow = new BrowserWindow({
+
         width: 1100,
         height: 700,
 
+        minWidth: 800,
+        minHeight: 500,
+
+        backgroundColor: "#1e1e1e",
+
         webPreferences: {
+
             nodeIntegration: true,
             contextIsolation: false
-        },
 
-        title: "AuraWallpapers"
+        }
+
     });
 
-    window.loadFile(
-        path.join(__dirname, "ui/index.html")
+
+    mainWindow.loadFile(
+        path.join(
+            __dirname,
+            "ui/index.html"
+        )
     );
+
+
 }
 
 
-app.whenReady().then(createWindow);
+
+function setupIPC(){
+
+    ipcMain.handle(
+        "wallpapers:list",
+        () => {
+
+            return controller.getWallpapers();
+
+        }
+    );
 
 
-app.on("window-all-closed", () => {
+    ipcMain.handle(
+        "wallpaper:apply",
+        (event,id)=>{
 
-    if(process.platform !== "darwin"){
-        app.quit();
-    }
+            return controller.applyWallpaper(id);
+
+        }
+    );
+
+
+    ipcMain.handle(
+        "wallpaper:close",
+        ()=>{
+
+            controller.closeWallpaper();
+
+        }
+    );
+
+
+    ipcMain.handle(
+        "settings:get",
+        ()=>{
+
+            return controller.getSettings();
+
+        }
+    );
+
+}
+
+
+
+app.whenReady().then(()=>{
+
+
+    controller =
+        new AuraController();
+
+
+    controller.initialize();
+
+
+    setupIPC();
+
+
+    createWindow();
+
 
 });
+
+
+
+app.on(
+    "window-all-closed",
+    ()=>{
+
+        if(process.platform !== "darwin"){
+
+            app.quit();
+
+        }
+
+    }
+);
