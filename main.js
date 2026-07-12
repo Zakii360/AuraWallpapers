@@ -6,18 +6,25 @@ const {
 
 const path = require("path");
 
+
 const AuraController =
     require("./controller");
 
 
-let mainWindow = null;
 
-let controller = null;
-
-
+let controller =
+    null;
 
 
-function createWindow(){
+
+let mainWindow =
+    null;
+
+
+
+
+
+function createMainWindow(){
 
 
     mainWindow =
@@ -27,9 +34,12 @@ function createWindow(){
 
             height: 700,
 
-            minWidth: 850,
+            minWidth: 900,
 
-            minHeight: 550,
+            minHeight: 600,
+
+
+            backgroundColor: "#111111",
 
 
             icon:
@@ -43,9 +53,17 @@ function createWindow(){
 
             webPreferences: {
 
-                nodeIntegration: true,
+                preload:
+                    path.join(
+                        __dirname,
+                        "preload.js"
+                    ),
 
-                contextIsolation: false
+
+                contextIsolation: true,
+
+
+                nodeIntegration: false
 
             }
 
@@ -65,17 +83,6 @@ function createWindow(){
     );
 
 
-
-    mainWindow.on(
-        "closed",
-        () => {
-
-            mainWindow = null;
-
-        }
-    );
-
-
 }
 
 
@@ -87,12 +94,18 @@ function setupIPC(){
 
 
     ipcMain.handle(
+
         "wallpapers:list",
-        () => {
 
-            return controller.getWallpapers();
+        ()=>{
+
+
+            return controller
+                .getWallpapers();
+
 
         }
+
     );
 
 
@@ -100,14 +113,42 @@ function setupIPC(){
 
 
     ipcMain.handle(
-        "wallpaper:apply",
-        async (event, id) => {
 
-            return await controller.applyWallpaper(
-                id
-            );
+        "wallpapers:apply",
+
+        async(
+            event,
+            id
+        )=>{
+
+
+            try{
+
+
+                return controller
+                    .applyWallpaper(id);
+
+
+            }
+            catch(error){
+
+
+                console.error(
+                    error
+                );
+
+
+                return {
+                    error:
+                        error.message
+                };
+
+
+            }
+
 
         }
+
     );
 
 
@@ -115,14 +156,22 @@ function setupIPC(){
 
 
     ipcMain.handle(
-        "wallpaper:close",
-        () => {
 
-            controller.closeWallpaper();
+        "wallpapers:close",
+
+        ()=>{
+
+
+            controller
+                .closeWallpaper();
+
+
 
             return true;
 
+
         }
+
     );
 
 
@@ -130,26 +179,20 @@ function setupIPC(){
 
 
     ipcMain.handle(
-        "wallpapers:refresh",
-        () => {
 
-            return controller.refresh();
-
-        }
-    );
-
-
-
-
-
-    ipcMain.handle(
         "settings:get",
-        () => {
 
-            return controller.getSettings();
+        ()=>{
+
+
+            return controller
+                .getSettings();
+
 
         }
+
     );
+
 
 
 }
@@ -158,42 +201,32 @@ function setupIPC(){
 
 
 
-app.whenReady().then(
-    () => {
 
 
-        controller =
-            new AuraController();
+app.whenReady()
+.then(()=>{
 
 
-
-        try {
-
-            controller.initialize();
-
-
-        } catch(error) {
-
-
-            console.error(
-                "AuraWallpapers initialization failed:",
-                error
-            );
-
-
-        }
+    controller =
+        new AuraController();
 
 
 
-        setupIPC();
+    controller.initialize();
 
 
 
-        createWindow();
+    setupIPC();
 
 
-    }
-);
+
+    createMainWindow();
+
+
+
+});
+
+
 
 
 
@@ -201,10 +234,16 @@ app.whenReady().then(
 
 app.on(
     "window-all-closed",
-    () => {
+    ()=>{
 
 
-        if(process.platform !== "darwin"){
+        controller?.closeWallpaper();
+
+
+
+        if(
+            process.platform !== "darwin"
+        ){
 
             app.quit();
 
@@ -212,6 +251,7 @@ app.on(
 
 
     }
+
 );
 
 
@@ -220,17 +260,20 @@ app.on(
 
 app.on(
     "activate",
-    () => {
+    ()=>{
 
 
         if(
-            BrowserWindow.getAllWindows().length === 0
+            BrowserWindow
+                .getAllWindows()
+                .length === 0
         ){
 
-            createWindow();
+            createMainWindow();
 
         }
 
 
     }
+
 );
