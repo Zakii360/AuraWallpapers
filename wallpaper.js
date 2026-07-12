@@ -8,19 +8,19 @@ const path = require("path");
 
 class WallpaperEngine {
 
-
-    constructor(){
+    constructor(desktopManager = null) {
 
         this.window = null;
-        this.current = null;
+        this.currentWallpaper = null;
+        this.desktopManager = desktopManager;
 
     }
 
 
 
-    async load(wallpaper){
+    async start(wallpaper) {
 
-        this.unload();
+        await this.stop();
 
 
         const display =
@@ -29,7 +29,6 @@ class WallpaperEngine {
 
         const bounds =
             display.bounds;
-
 
 
         this.window =
@@ -45,20 +44,22 @@ class WallpaperEngine {
 
                 transparent: false,
 
-                fullscreen: false,
-
                 show: false,
 
                 focusable: false,
 
                 skipTaskbar: true,
 
+                resizable: false,
+
+                movable: false,
+
 
                 webPreferences: {
 
-                    contextIsolation: true,
+                    sandbox: true,
 
-                    sandbox: true
+                    contextIsolation: true
 
                 }
 
@@ -71,35 +72,34 @@ class WallpaperEngine {
         );
 
 
-        this.window.loadFile(
-
+        await this.window.loadFile(
             path.join(
                 wallpaper.path,
                 wallpaper.file
             )
-
         );
 
 
+        this.window.once(
+            "ready-to-show",
+            () => {
 
-        await new Promise(
-            resolve => {
+                this.window.show();
 
-                this.window.once(
-                    "ready-to-show",
-                    resolve
-                );
+
+                if(this.desktopManager) {
+
+                    this.desktopManager.attach(
+                        this.window
+                    );
+
+                }
 
             }
         );
 
 
-
-        this.window.show();
-
-
-        this.current = wallpaper;
-
+        this.currentWallpaper = wallpaper;
 
 
         return true;
@@ -109,33 +109,59 @@ class WallpaperEngine {
 
 
 
-    unload(){
+    async stop() {
 
-        if(this.window){
+        if(!this.window) {
 
-            this.window.destroy();
-
-            this.window = null;
+            return;
 
         }
 
 
-        this.current = null;
+        if(this.desktopManager) {
+
+            this.desktopManager.detach();
+
+        }
+
+
+        this.window.close();
+
+        this.window = null;
+
+        this.currentWallpaper = null;
 
     }
 
 
 
 
-    getCurrent(){
+    restart(wallpaper) {
 
-        return this.current;
+        return this.start(
+            wallpaper
+        );
 
     }
 
+
+
+
+    getCurrent() {
+
+        return this.currentWallpaper;
+
+    }
+
+
+
+    isRunning() {
+
+        return this.window !== null;
+
+    }
 
 }
-
 
 
 module.exports = WallpaperEngine;
