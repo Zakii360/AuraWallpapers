@@ -14,7 +14,7 @@
 
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder"
+    "build": "electron-builder --publish never"
   },
 
   "dependencies": {
@@ -43,7 +43,12 @@
 
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ]
     },
 
@@ -52,8 +57,7 @@
         "deb",
         "AppImage"
       ],
-      "category": "Utility",
-      "desktopName": "AuraWallpapers"
+      "category": "Utility"
     }
   }
 }
