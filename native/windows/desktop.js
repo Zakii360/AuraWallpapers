@@ -1,99 +1,54 @@
-const ffi = require("ffi-napi");
-const ref = require("ref-napi");
-
-
-
-const user32 =
-    ffi.Library(
-        "user32",
-        {
-
-
-            "FindWindowW":
-            [
-                "long",
-                [
-                    "string",
-                    "string"
-                ]
-            ],
-
-
-
-            "FindWindowExW":
-            [
-                "long",
-                [
-                    "long",
-                    "long",
-                    "string",
-                    "string"
-                ]
-            ],
-
-
-
-            "SendMessageTimeoutW":
-            [
-                "long",
-                [
-                    "long",
-                    "int",
-                    "int",
-                    "int",
-                    "int",
-                    "int",
-                    "long"
-                ]
-            ],
-
-
-
-            "SetParent":
-            [
-                "long",
-                [
-                    "long",
-                    "long"
-                ]
-            ],
-
-
-
-            "ShowWindow":
-            [
-                "bool",
-                [
-                    "long",
-                    "int"
-                ]
-            ]
-
-        }
-
-    );
-
-
-
+const os = require("os");
 
 
 class WindowsDesktop {
 
 
-
     constructor(){
 
-
         this.worker = null;
-
 
     }
 
 
 
+    findDesktop(){
 
 
-    createWorker(){
+        if(os.platform() !== "win32"){
+
+            throw new Error(
+                "Windows desktop integration unavailable on this platform"
+            );
+
+        }
+
+
+        const ffi = require("ffi-napi");
+
+
+        const user32 = ffi.Library(
+            "user32",
+            {
+
+                "FindWindowW":[
+                    "long",
+                    [
+                        "string",
+                        "string"
+                    ]
+                ],
+
+                "SetParent":[
+                    "long",
+                    [
+                        "long",
+                        "long"
+                    ]
+                ]
+
+            }
+        );
 
 
         const progman =
@@ -103,74 +58,16 @@ class WindowsDesktop {
             );
 
 
-
         if(!progman){
 
             throw new Error(
-                "Progman not found"
+                "Windows desktop not found"
             );
 
         }
 
 
-
-        // Ask Explorer to create WorkerW layer
-
-        user32.SendMessageTimeoutW(
-
-            progman,
-
-            0x052C,
-
-            0,
-
-            0,
-
-            0,
-
-            1000,
-
-            0
-
-        );
-
-
-
-
-
-        let worker =
-            user32.FindWindowExW(
-
-                0,
-
-                0,
-
-                "WorkerW",
-
-                null
-
-            );
-
-
-
-        if(!worker){
-
-
-            worker =
-                progman;
-
-
-        }
-
-
-
-        this.worker =
-            worker;
-
-
-
-        return worker;
-
+        return progman;
 
     }
 
@@ -178,52 +75,50 @@ class WindowsDesktop {
 
 
 
-    attach(browserWindow){
+    attach(hwnd){
 
 
-        if(!this.worker){
+        if(os.platform() !== "win32"){
 
-
-            this.createWorker();
-
+            return false;
 
         }
 
 
+        const desktop =
+            this.findDesktop();
 
 
 
-        const hwnd =
-            browserWindow.getNativeWindowHandle();
+        const ffi =
+            require("ffi-napi");
 
 
+        const user32 =
+            ffi.Library(
+                "user32",
+                {
 
-        const windowHandle =
-            ref.readInt32(
-                hwnd,
-                0
+                    "SetParent":[
+                        "long",
+                        [
+                            "long",
+                            "long"
+                        ]
+                    ]
+
+                }
             );
 
 
-
-
         user32.SetParent(
-
-            windowHandle,
-
-            this.worker
-
+            hwnd,
+            desktop
         );
 
 
-
-        user32.ShowWindow(
-
-            windowHandle,
-
-            5
-
-        );
+        this.worker =
+            hwnd;
 
 
 
@@ -238,13 +133,9 @@ class WindowsDesktop {
 
     detach(){
 
-
-        this.worker =
-            null;
-
+        this.worker = null;
 
     }
-
 
 
 }
