@@ -1,80 +1,33 @@
-const fs = require("fs-extra");
 const path = require("path");
+const WallpaperLoader = require("./wallpapers/loader");
 
 
 class WallpaperEngine {
 
-    constructor() {
 
-        this.wallpaperDirectory = path.join(
-            __dirname,
-            "wallpapers"
-        );
+    constructor(){
+
+        this.loader =
+            new WallpaperLoader(
+                path.join(
+                    __dirname,
+                    "wallpapers"
+                )
+            );
+
+
+        this.availableWallpapers = [];
 
         this.currentWallpaper = null;
-        this.availableWallpapers = [];
 
     }
 
 
-    // Scan wallpaper folder
-    loadWallpapers() {
 
-        if(!fs.existsSync(this.wallpaperDirectory)){
-            fs.ensureDirSync(this.wallpaperDirectory);
-        }
+    loadWallpapers(){
 
-
-        const folders = fs.readdirSync(
-            this.wallpaperDirectory
-        );
-
-
-        this.availableWallpapers = [];
-
-
-        folders.forEach(folder => {
-
-            const folderPath =
-                path.join(
-                    this.wallpaperDirectory,
-                    folder
-                );
-
-
-            if(
-                fs.statSync(folderPath).isDirectory()
-            ){
-
-                const config =
-                    path.join(
-                        folderPath,
-                        "wallpaper.json"
-                    );
-
-
-                if(fs.existsSync(config)){
-
-                    const data =
-                        fs.readJsonSync(config);
-
-
-                    this.availableWallpapers.push({
-
-                        id: folder,
-
-                        path: folderPath,
-
-                        ...data
-
-                    });
-
-                }
-
-            }
-
-        });
-
+        this.availableWallpapers =
+            this.loader.load();
 
         return this.availableWallpapers;
 
@@ -82,7 +35,6 @@ class WallpaperEngine {
 
 
 
-    // Get wallpaper by ID
     getWallpaper(id){
 
         return this.availableWallpapers.find(
@@ -94,30 +46,25 @@ class WallpaperEngine {
 
 
 
-    // Apply wallpaper
     setWallpaper(id){
 
         const wallpaper =
             this.getWallpaper(id);
 
 
+
         if(!wallpaper){
 
             throw new Error(
-                "Wallpaper not found"
+                "Wallpaper not found: " + id
             );
 
         }
 
 
+
         this.currentWallpaper =
             wallpaper;
-
-
-        console.log(
-            "Applied wallpaper:",
-            wallpaper.name
-        );
 
 
         return wallpaper;
@@ -126,7 +73,6 @@ class WallpaperEngine {
 
 
 
-    // Current wallpaper
     getCurrent(){
 
         return this.currentWallpaper;
@@ -135,12 +81,9 @@ class WallpaperEngine {
 
 
 
-    // Import .awp packages later
-    async importWallpaper(){
+    refresh(){
 
-        console.log(
-            "Wallpaper importing coming in v2.1"
-        );
+        return this.loadWallpapers();
 
     }
 
