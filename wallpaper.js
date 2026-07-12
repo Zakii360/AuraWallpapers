@@ -4,36 +4,36 @@ const path = require("path");
 
 class Wallpaper {
 
-    constructor() {
+
+    constructor(){
+
         this.window = null;
+
     }
 
 
-    create(source) {
+
+    create(source){
 
         this.close();
 
 
-        this.window = new BrowserWindow({
+        this.window =
+            new BrowserWindow({
 
-            fullscreen: true,
+                fullscreen:true,
 
-            frame: false,
+                frame:false,
 
-            transparent: true,
+                show:true,
 
-            skipTaskbar: true,
+                alwaysOnTop:false,
 
-            focusable: false,
+                webPreferences:{
+                    backgroundThrottling:false
+                }
 
-            webPreferences: {
-                backgroundThrottling: false
-            }
-
-        });
-
-
-        this.window.setIgnoreMouseEvents(true);
+            });
 
 
         this.window.loadFile(
@@ -56,21 +56,7 @@ class Wallpaper {
 
             this.window.close();
 
-            this.window = null;
-
-        }
-
-    }
-
-
-
-    setVisible(value){
-
-        if(this.window){
-
-            value
-            ? this.window.show()
-            : this.window.hide();
+            this.window=null;
 
         }
 
