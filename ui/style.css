@@ -1,61 +1,236 @@
+* {
+    box-sizing: border-box;
+}
+
+
 body {
 
-    margin:0;
-    background:#1e1e1e;
-    color:#eee;
+    margin: 0;
+
+    background: #1b1b1b;
+
+    color: #e8e8e8;
 
     font-family:
-    system-ui,
-    sans-serif;
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        sans-serif;
 
 }
+
 
 
 header {
 
-    padding:25px;
+    padding: 24px 30px;
+
     border-bottom:
-    1px solid #333;
+        1px solid #303030;
 
 }
+
+
+header h1 {
+
+    margin: 0;
+
+    font-size: 26px;
+
+    font-weight: 600;
+
+}
+
+
+header p {
+
+    margin-top: 6px;
+
+    color: #a8a8a8;
+
+}
+
 
 
 main {
 
-    display:flex;
-    gap:20px;
-    padding:20px;
+    display: flex;
+
+    gap: 18px;
+
+    padding: 20px;
+
+    height: calc(100vh - 120px);
 
 }
+
 
 
 section {
 
-    background:#252525;
-    padding:20px;
-    border-radius:8px;
+    background: #242424;
+
+    border:
+        1px solid #333;
+
+    border-radius: 8px;
+
+    padding: 18px;
 
 }
+
 
 
 .library {
 
-    flex:2;
+    flex: 3;
+
+    overflow-y: auto;
 
 }
+
 
 
 .settings {
 
-    flex:1;
+    flex: 1;
+
+    min-width: 260px;
 
 }
 
 
+
+h2 {
+
+    margin-top: 0;
+
+    font-size: 18px;
+
+    font-weight: 500;
+
+}
+
+
+
+.wallpapers {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(180px,1fr)
+        );
+
+    gap: 14px;
+
+}
+
+
+
 .card {
 
-    background:#303030;
-    padding:15px;
-    border-radius:6px;
+    background: #2d2d2d;
+
+    border:
+        1px solid #3a3a3a;
+
+    border-radius: 6px;
+
+    padding: 14px;
+
+}
+
+
+
+.card h3 {
+
+    margin: 0 0 8px;
+
+    font-size: 15px;
+
+}
+
+
+
+.card p {
+
+    margin: 0 0 12px;
+
+    color: #999;
+
+    font-size: 13px;
+
+}
+
+
+
+button {
+
+    background: #3b82f6;
+
+    border: none;
+
+    color: white;
+
+    padding: 8px 14px;
+
+    border-radius: 5px;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+
+
+button:hover {
+
+    background: #2563eb;
+
+}
+
+
+
+select {
+
+    margin-top: 8px;
+
+    background: #303030;
+
+    color: white;
+
+    border:
+        1px solid #444;
+
+    padding: 7px;
+
+    border-radius: 5px;
+
+}
+
+
+
+input {
+
+    accent-color: #3b82f6;
+
+}
+
+
+
+footer {
+
+    position: fixed;
+
+    bottom: 12px;
+
+    right: 20px;
+
+    color: #777;
+
+    font-size: 12px;
 
 }
