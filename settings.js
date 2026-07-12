@@ -1,5 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
+const { app } = require("electron");
 
 
 class SettingsManager {
@@ -9,7 +10,7 @@ class SettingsManager {
 
         this.file =
             path.join(
-                __dirname,
+                app.getPath("userData"),
                 "settings.json"
             );
 
@@ -41,31 +42,24 @@ class SettingsManager {
 
         if(!fs.existsSync(this.file)){
 
-            this.settings =
-                {
-                    ...this.defaults
-                };
-
+            this.settings = {
+                ...this.defaults
+            };
 
             this.save();
-
 
             return this.settings;
 
         }
 
 
+        this.settings = {
 
-        this.settings =
-            {
-                ...this.defaults,
-                ...fs.readJsonSync(
-                    this.file
-                )
-            };
+            ...this.defaults,
 
+            ...fs.readJsonSync(this.file)
 
-        this.save();
+        };
 
 
         return this.settings;
@@ -74,8 +68,12 @@ class SettingsManager {
 
 
 
-
     save(){
+
+        fs.ensureDirSync(
+            path.dirname(this.file)
+        );
+
 
         fs.writeJsonSync(
 
@@ -93,13 +91,11 @@ class SettingsManager {
 
 
 
-
     get(key){
 
         return this.settings[key];
 
     }
-
 
 
 
@@ -123,11 +119,9 @@ class SettingsManager {
 
     reset(){
 
-        this.settings =
-            {
-                ...this.defaults
-            };
-
+        this.settings = {
+            ...this.defaults
+        };
 
         this.save();
 
