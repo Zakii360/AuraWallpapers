@@ -1,246 +1,161 @@
 const {
-    app,
     BrowserWindow,
-    ipcMain
+    screen
 } = require("electron");
 
+const path = require("path");
 
-const path =
-    require("path");
+class Wallpaper {
 
+    constructor() {
 
-const AuraController =
-    require("./controller");
-
-
-
-let mainWindow = null;
-
-
-let controller = null;
-
-
-
-
-
-function createWindow(){
-
-
-    mainWindow =
-        new BrowserWindow({
-
-            width:1200,
-
-            height:760,
-
-            minWidth:900,
-
-            minHeight:600,
-
-            backgroundColor:"#111111",
-
-            webPreferences:{
-
-
-                nodeIntegration:true,
-
-                contextIsolation:false
-
-
-            }
-
-
-        });
-
-
-
-    mainWindow.loadFile(
-        path.join(
-            __dirname,
-            "ui",
-            "index.html"
-        )
-    );
-
-
-
-}
-
-
-
-
-
-app.whenReady()
-.then(()=>{
-
-
-    controller =
-        new AuraController();
-
-
-
-    controller.initialize();
-
-
-
-    createWindow();
-
-
-
-});
-
-
-
-
-
-
-ipcMain.handle(
-    "wallpapers:get",
-    ()=>{
-
-
-        return controller.getWallpapers();
-
+        this.window = null;
+        this.currentWallpaper = null;
 
     }
-);
 
 
 
+    create(wallpaper) {
 
+        if (!wallpaper) {
+            return;
+        }
 
-ipcMain.handle(
-    "wallpaper:apply",
-    (event,id)=>{
+        const display =
+            screen.getPrimaryDisplay();
 
+        const bounds =
+            display.bounds;
 
-        return controller.applyWallpaper(
-            id
-        );
+        if (!this.window) {
 
+            this.window =
+                new BrowserWindow({
 
-    }
-);
+                    x: bounds.x,
+                    y: bounds.y,
 
+                    width: bounds.width,
+                    height: bounds.height,
 
+                    frame: false,
 
+                    transparent: false,
 
+                    fullscreen: false,
 
-ipcMain.handle(
-    "wallpaper:close",
-    ()=>{
+                    resizable: false,
+                    movable: false,
+                    minimizable: false,
+                    maximizable: false,
 
+                    focusable: false,
 
-        controller.closeWallpaper();
+                    skipTaskbar: true,
 
+                    show: false,
 
-        return true;
+                    webPreferences: {
 
+                        nodeIntegration: false,
 
-    }
-);
+                        contextIsolation: true
 
+                    }
 
+                });
 
+            this.window.setMenuBarVisibility(false);
 
+            this.window.setIgnoreMouseEvents(true);
 
-ipcMain.handle(
-    "wallpapers:refresh",
-    ()=>{
+            this.window.on("closed", () => {
 
+                this.window = null;
+                this.currentWallpaper = null;
 
-        return controller.refresh();
-
-
-    }
-);
-
-
-
-
-
-ipcMain.handle(
-    "settings:get",
-    ()=>{
-
-
-        return controller.getSettings();
-
-
-    }
-);
-
-
-
-
-
-ipcMain.handle(
-    "settings:update",
-    (event,values)=>{
-
-
-        return controller.updateSettings(
-            values
-        );
-
-
-    }
-);
-
-
-
-
-
-ipcMain.handle(
-    "effects:get",
-    (event,id)=>{
-
-
-        return controller.getWallpaperEffects(
-            id
-        );
-
-
-    }
-);
-
-
-
-
-
-ipcMain.handle(
-    "effects:update",
-    (event,id,effects)=>{
-
-
-        return controller.updateWallpaperEffects(
-            id,
-            effects
-        );
-
-
-    }
-);
-
-
-
-
-
-app.on(
-    "window-all-closed",
-    ()=>{
-
-
-        controller?.closeWallpaper();
-
-
-
-        if(process.platform !== "darwin"){
-
-            app.quit();
+            });
 
         }
 
+        this.currentWallpaper = wallpaper.id;
+
+        this.window.loadFile(
+
+            path.join(
+                __dirname,
+                "wallpapers",
+                wallpaper.id,
+                "wallpaper.html"
+            )
+
+        );
+
+        this.window.once("ready-to-show", () => {
+
+            if (!this.window) {
+                return;
+            }
+
+            this.window.showInactive();
+
+            this.window.setAlwaysOnTop(false);
+
+            this.window.blur();
+
+        });
 
     }
-);
+
+
+
+    hide() {
+
+        if (this.window) {
+
+            this.window.hide();
+
+        }
+
+    }
+
+
+
+    show() {
+
+        if (this.window) {
+
+            this.window.showInactive();
+
+        }
+
+    }
+
+
+
+    isRunning() {
+
+        return this.window !== null;
+
+    }
+
+
+
+    close() {
+
+        if (!this.window) {
+            return;
+        }
+
+        this.window.destroy();
+
+        this.window = null;
+
+        this.currentWallpaper = null;
+
+    }
+
+}
+
+module.exports = Wallpaper;
