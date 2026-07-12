@@ -16,19 +16,17 @@ class SettingsManager {
 
         this.defaults = {
 
-            version:"2.0.0",
+            version: "2.0.0",
 
-            startup:false,
+            startup: false,
 
-            fps:60,
+            fps: 60,
 
-            pauseFullscreen:true,
+            pauseFullscreen: true,
 
-            hardwareAcceleration:true,
+            hardwareAcceleration: true,
 
-            currentWallpaper:null,
-
-            monitors:{}
+            currentWallpaper: null
 
         };
 
@@ -41,25 +39,33 @@ class SettingsManager {
 
     load(){
 
-        if(
-            !fs.existsSync(this.file)
-        ){
+        if(!fs.existsSync(this.file)){
 
             this.settings =
-                this.defaults;
+                {
+                    ...this.defaults
+                };
 
 
             this.save();
+
 
             return this.settings;
 
         }
 
 
+
         this.settings =
-            fs.readJsonSync(
-                this.file
-            );
+            {
+                ...this.defaults,
+                ...fs.readJsonSync(
+                    this.file
+                )
+            };
+
+
+        this.save();
 
 
         return this.settings;
@@ -72,11 +78,15 @@ class SettingsManager {
     save(){
 
         fs.writeJsonSync(
+
             this.file,
+
             this.settings,
+
             {
-                spaces:4
+                spaces: 4
             }
+
         );
 
     }
@@ -95,9 +105,17 @@ class SettingsManager {
 
     set(key,value){
 
-        this.settings[key]=value;
+        this.settings[key] = value;
 
         this.save();
+
+    }
+
+
+
+    getAll(){
+
+        return this.settings;
 
     }
 
@@ -106,12 +124,14 @@ class SettingsManager {
     reset(){
 
         this.settings =
-            this.defaults;
+            {
+                ...this.defaults
+            };
+
 
         this.save();
 
     }
-
 
 
 }
