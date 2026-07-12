@@ -54,6 +54,16 @@ function createWindow(){
         )
     );
 
+
+    mainWindow.on(
+        "closed",
+        () => {
+
+            mainWindow = null;
+
+        }
+    );
+
 }
 
 
@@ -63,7 +73,7 @@ function setupIPC(){
 
     ipcMain.handle(
         "wallpapers:list",
-        ()=>{
+        () => {
 
             return controller.getWallpapers();
 
@@ -74,7 +84,7 @@ function setupIPC(){
 
     ipcMain.handle(
         "wallpaper:apply",
-        (event,id)=>{
+        (event, id) => {
 
             return controller.applyWallpaper(id);
 
@@ -85,7 +95,7 @@ function setupIPC(){
 
     ipcMain.handle(
         "wallpaper:close",
-        ()=>{
+        () => {
 
             controller.closeWallpaper();
 
@@ -96,7 +106,7 @@ function setupIPC(){
 
     ipcMain.handle(
         "settings:get",
-        ()=>{
+        () => {
 
             return controller.getSettings();
 
@@ -107,7 +117,7 @@ function setupIPC(){
 
     ipcMain.handle(
         "wallpapers:refresh",
-        ()=>{
+        () => {
 
             return controller.refresh();
 
@@ -119,14 +129,25 @@ function setupIPC(){
 
 
 
-app.whenReady().then(()=>{
+app.whenReady().then(() => {
 
 
     controller =
         new AuraController();
 
 
-    controller.initialize();
+    try {
+
+        controller.initialize();
+
+    } catch(error) {
+
+        console.error(
+            "AuraWallpapers startup error:",
+            error
+        );
+
+    }
 
 
     setupIPC();
@@ -141,11 +162,26 @@ app.whenReady().then(()=>{
 
 app.on(
     "window-all-closed",
-    ()=>{
+    () => {
 
         if(process.platform !== "darwin"){
 
             app.quit();
+
+        }
+
+    }
+);
+
+
+
+app.on(
+    "activate",
+    () => {
+
+        if(BrowserWindow.getAllWindows().length === 0){
+
+            createWindow();
 
         }
 
