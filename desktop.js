@@ -1,4 +1,4 @@
-const { screen } = require("electron");
+const { exec } = require("child_process");
 
 
 class DesktopManager {
@@ -6,34 +6,71 @@ class DesktopManager {
 
     constructor(){
 
-        this.monitors = [];
+        this.wallpaperWindow = null;
 
     }
 
 
 
-    refresh(){
+    attach(window){
 
-        this.monitors =
-            screen.getAllDisplays();
-
-        return this.monitors;
+        this.wallpaperWindow = window;
 
     }
 
 
 
-    getPrimary(){
+    setBehindDesktop(){
 
-        return screen.getPrimaryDisplay();
+        if(!this.wallpaperWindow){
+            return false;
+        }
+
+
+        if(process.platform !== "win32"){
+
+            console.log(
+                "Desktop attachment is only available on Windows."
+            );
+
+            return false;
+
+        }
+
+
+        /*
+            Windows desktop embedding placeholder.
+
+            The actual WorkerW attachment requires a native
+            Win32 bridge. This keeps the engine architecture
+            clean so the native layer can be added later.
+        */
+
+
+        console.log(
+            "Preparing AuraWallpapers desktop layer..."
+        );
+
+
+        this.wallpaperWindow.setAlwaysOnTop(
+            false
+        );
+
+
+        this.wallpaperWindow.setSkipTaskbar(
+            true
+        );
+
+
+        return true;
 
     }
 
 
 
-    getDisplays(){
+    detach(){
 
-        return this.monitors;
+        this.wallpaperWindow = null;
 
     }
 
