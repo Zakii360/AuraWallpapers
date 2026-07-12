@@ -4,7 +4,9 @@ const {
     ipcMain
 } = require("electron");
 
-const path = require("path");
+
+const path =
+    require("path");
 
 
 const AuraController =
@@ -12,58 +14,38 @@ const AuraController =
 
 
 
-let controller =
-    null;
+let mainWindow = null;
 
 
-
-let mainWindow =
-    null;
+let controller = null;
 
 
 
 
 
-function createMainWindow(){
+function createWindow(){
 
 
     mainWindow =
         new BrowserWindow({
 
-            width: 1100,
+            width:1200,
 
-            height: 700,
+            height:760,
 
-            minWidth: 900,
+            minWidth:900,
 
-            minHeight: 600,
+            minHeight:600,
 
+            backgroundColor:"#111111",
 
-            backgroundColor: "#111111",
-
-
-            icon:
-                path.join(
-                    __dirname,
-                    "assets",
-                    "icon.png"
-                ),
+            webPreferences:{
 
 
+                nodeIntegration:true,
 
-            webPreferences: {
+                contextIsolation:false
 
-                preload:
-                    path.join(
-                        __dirname,
-                        "preload.js"
-                    ),
-
-
-                contextIsolation: true,
-
-
-                nodeIntegration: false
 
             }
 
@@ -73,131 +55,16 @@ function createMainWindow(){
 
 
     mainWindow.loadFile(
-
         path.join(
             __dirname,
             "ui",
             "index.html"
         )
-
-    );
-
-
-}
-
-
-
-
-
-function setupIPC(){
-
-
-
-    ipcMain.handle(
-
-        "wallpapers:list",
-
-        ()=>{
-
-
-            return controller
-                .getWallpapers();
-
-
-        }
-
-    );
-
-
-
-
-
-    ipcMain.handle(
-
-        "wallpapers:apply",
-
-        async(
-            event,
-            id
-        )=>{
-
-
-            try{
-
-
-                return controller
-                    .applyWallpaper(id);
-
-
-            }
-            catch(error){
-
-
-                console.error(
-                    error
-                );
-
-
-                return {
-                    error:
-                        error.message
-                };
-
-
-            }
-
-
-        }
-
-    );
-
-
-
-
-
-    ipcMain.handle(
-
-        "wallpapers:close",
-
-        ()=>{
-
-
-            controller
-                .closeWallpaper();
-
-
-
-            return true;
-
-
-        }
-
-    );
-
-
-
-
-
-    ipcMain.handle(
-
-        "settings:get",
-
-        ()=>{
-
-
-            return controller
-                .getSettings();
-
-
-        }
-
     );
 
 
 
 }
-
-
 
 
 
@@ -216,17 +83,144 @@ app.whenReady()
 
 
 
-    setupIPC();
-
-
-
-    createMainWindow();
+    createWindow();
 
 
 
 });
 
 
+
+
+
+
+ipcMain.handle(
+    "wallpapers:get",
+    ()=>{
+
+
+        return controller.getWallpapers();
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "wallpaper:apply",
+    (event,id)=>{
+
+
+        return controller.applyWallpaper(
+            id
+        );
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "wallpaper:close",
+    ()=>{
+
+
+        controller.closeWallpaper();
+
+
+        return true;
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "wallpapers:refresh",
+    ()=>{
+
+
+        return controller.refresh();
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "settings:get",
+    ()=>{
+
+
+        return controller.getSettings();
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "settings:update",
+    (event,values)=>{
+
+
+        return controller.updateSettings(
+            values
+        );
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "effects:get",
+    (event,id)=>{
+
+
+        return controller.getWallpaperEffects(
+            id
+        );
+
+
+    }
+);
+
+
+
+
+
+ipcMain.handle(
+    "effects:update",
+    (event,id,effects)=>{
+
+
+        return controller.updateWallpaperEffects(
+            id,
+            effects
+        );
+
+
+    }
+);
 
 
 
@@ -241,9 +235,7 @@ app.on(
 
 
 
-        if(
-            process.platform !== "darwin"
-        ){
+        if(process.platform !== "darwin"){
 
             app.quit();
 
@@ -251,29 +243,4 @@ app.on(
 
 
     }
-
-);
-
-
-
-
-
-app.on(
-    "activate",
-    ()=>{
-
-
-        if(
-            BrowserWindow
-                .getAllWindows()
-                .length === 0
-        ){
-
-            createMainWindow();
-
-        }
-
-
-    }
-
 );
