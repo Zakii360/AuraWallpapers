@@ -5,7 +5,7 @@
 
 <meta charset="UTF-8">
 
-<title>AuraWallpapers Example</title>
+<title>AuraWallpapers Scene</title>
 
 
 <style>
@@ -13,67 +13,101 @@
 html,
 body {
 
-    margin: 0;
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
 
-    width: 100%;
-    height: 100%;
+    background:#000;
 
-    overflow: hidden;
+}
 
-    background: #000;
+
+#scene {
+
+    position:absolute;
+
+    inset:0;
+
+    overflow:hidden;
 
 }
 
 
 
-#background {
+#image {
 
-    position: absolute;
 
-    inset: 0;
+    position:absolute;
 
-    width: 100%;
-    height: 100%;
+    width:110%;
+    height:110%;
 
-    object-fit: cover;
+    left:-5%;
+    top:-5%;
 
-    transform: scale(1.05);
+    object-fit:cover;
 
     animation:
         drift 30s infinite alternate ease-in-out;
 
+
+    filter:
+        brightness(var(--brightness))
+        contrast(var(--contrast))
+        saturate(var(--saturation));
+
+
 }
 
 
 
-.overlay {
 
-    position: absolute;
+#rain {
 
-    inset: 0;
+    position:absolute;
+
+    inset:0;
+
+    pointer-events:none;
+
+}
+
+
+
+
+.drop {
+
+
+    position:absolute;
+
+    width:2px;
+
+    height:40px;
 
     background:
-        radial-gradient(
-            circle at center,
-            transparent 25%,
-            rgba(0,0,0,0.55)
+        linear-gradient(
+            transparent,
+            rgba(255,255,255,.5)
         );
 
-    pointer-events: none;
+
+    animation:
+        fall linear infinite;
+
 
 }
 
 
 
 
+#particles {
 
-.particles {
 
-    position: absolute;
+    position:absolute;
 
-    inset: 0;
+    inset:0;
 
-    pointer-events: none;
 
 }
 
@@ -81,22 +115,18 @@ body {
 
 .particle {
 
-    position: absolute;
 
-    width: 3px;
+    position:absolute;
 
-    height: 3px;
+    width:3px;
 
+    height:3px;
 
-    background:
-        rgba(255,255,255,0.75);
+    background:white;
 
+    border-radius:50%;
 
-    border-radius: 50%;
-
-
-    filter:
-        blur(.2px);
+    opacity:.5;
 
 
     animation:
@@ -110,25 +140,51 @@ body {
 @keyframes drift {
 
 
-    from {
+from {
 
-        transform:
-            scale(1.05)
-            translate3d(0,0,0);
+    transform:
+        scale(1)
+        translate3d(0,0,0);
 
-    }
+}
 
 
-    to {
+to {
 
-        transform:
-            scale(1.15)
-            translate3d(-35px,-15px,0);
+    transform:
+        scale(1.12)
+        translate3d(-35px,-15px,0);
 
-    }
+}
 
 
 }
+
+
+
+
+
+@keyframes fall {
+
+
+from {
+
+    transform:
+        translateY(-20vh);
+
+}
+
+
+to {
+
+    transform:
+        translateY(120vh);
+
+}
+
+
+}
+
 
 
 
@@ -136,50 +192,27 @@ body {
 @keyframes float {
 
 
-    from {
+from {
 
-        transform:
-            translate3d(
-                0,
-                110vh,
-                0
-            );
+    transform:
+        translateY(100vh);
 
-        opacity: 0;
-
-    }
+}
 
 
+to {
 
-    15% {
+    transform:
+        translateY(-10vh);
 
-        opacity: .8;
-
-    }
-
-
-
-    to {
-
-        transform:
-            translate3d(
-                20px,
-                -10vh,
-                0
-            );
-
-        opacity: 0;
-
-    }
+}
 
 
 }
 
 
 
-
 </style>
-
 
 </head>
 
@@ -187,20 +220,21 @@ body {
 <body>
 
 
+<div id="scene">
+
+
 <img
-    id="background"
-    src="image.png"
-    draggable="false"
+id="image"
+src="image.png"
 />
 
 
+<div id="rain"></div>
 
-<div class="overlay"></div>
+
+<div id="particles"></div>
 
 
-<div
-    class="particles"
-    id="particles">
 </div>
 
 
@@ -209,78 +243,38 @@ body {
 <script>
 
 
-const particleContainer =
-    document.getElementById(
-        "particles"
+const params =
+    new URLSearchParams(
+        location.search
     );
 
 
-
-const particleCount = 100;
-
-
-
-for(
-    let i = 0;
-    i < particleCount;
-    i++
-){
-
-
-    const particle =
-        document.createElement(
-            "div"
-        );
+let config =
+    {};
 
 
 
-    particle.className =
-        "particle";
+try {
 
 
+config =
+    JSON.parse(
 
-    particle.style.left =
-        Math.random() * 100 + "%";
-
-
-
-    particle.style.animationDuration =
-        (
-            6 +
-            Math.random() * 18
+        atob(
+            params.get("aura")
         )
-        + "s";
 
-
-
-    particle.style.animationDelay =
-        (
-            Math.random() * 15
-        )
-        + "s";
-
-
-
-    const size =
-        (
-            1 +
-            Math.random() * 4
-        );
-
-
-
-    particle.style.width =
-        size + "px";
-
-
-    particle.style.height =
-        size + "px";
-
-
-
-    particleContainer.appendChild(
-        particle
     );
+
+
+}
+
+catch{
+
+
+console.log(
+    "Default wallpaper settings"
+);
 
 
 }
@@ -288,26 +282,198 @@ for(
 
 
 
-// pause animations when hidden
-// saves GPU usage like real wallpaper engines
-// real issue I had with other engines
-// clear taskbar won't be affected btw
-// ok this is too many comments...
+
+const effects =
+    config.effects || {};
 
 
-document.addEventListener(
-    "visibilitychange",
-    () => {
 
 
-        document.body.style.animationPlayState =
-            document.hidden
-                ? "paused"
-                : "running";
 
 
-    }
+const camera =
+    effects.camera || {};
+
+
+
+const image =
+    document.getElementById(
+        "image"
+    );
+
+
+
+image.style.setProperty(
+
+    "--brightness",
+
+    camera.brightness || 1
+
 );
+
+
+
+image.style.setProperty(
+
+    "--contrast",
+
+    camera.contrast || 1
+
+);
+
+
+
+image.style.setProperty(
+
+    "--saturation",
+
+    camera.saturation || 1
+
+);
+
+
+
+
+
+
+
+// Rain system
+
+const rain =
+    effects.rain || {};
+
+
+
+if(
+    rain.enabled
+){
+
+
+const container =
+    document.getElementById(
+        "rain"
+    );
+
+
+
+for(
+    let i=0;
+    i<(rain.amount || 150);
+    i++
+){
+
+
+const drop =
+    document.createElement(
+        "div"
+    );
+
+
+drop.className =
+    "drop";
+
+
+drop.style.left =
+    Math.random()*100
+    +"%";
+
+
+
+drop.style.animationDuration =
+    (0.5+
+    Math.random()*1)
+    +"s";
+
+
+
+drop.style.animationDelay =
+    Math.random()*3
+    +"s";
+
+
+
+container.appendChild(
+    drop
+);
+
+
+}
+
+
+}
+
+
+
+
+
+
+
+//
+// Particle system
+//
+
+const particles =
+    effects.particles || {};
+
+
+
+if(
+    particles.enabled
+){
+
+
+const container =
+    document.getElementById(
+        "particles"
+    );
+
+
+
+for(
+    let i=0;
+    i<(particles.amount || 80);
+    i++
+){
+
+
+const p =
+    document.createElement(
+        "div"
+    );
+
+
+p.className =
+    "particle";
+
+
+p.style.left =
+    Math.random()*100
+    +"%";
+
+
+p.style.animationDuration =
+    (
+        5+
+        Math.random()*15
+    )
+    +"s";
+
+
+p.style.animationDelay =
+    Math.random()*10
+    +"s";
+
+
+container.appendChild(
+    p
+);
+
+
+}
+
+
+}
+
 
 
 </script>
