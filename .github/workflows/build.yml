@@ -1,98 +1,68 @@
 name: Build AuraWallpapers
 
-
 on:
-
   push:
-
     branches:
-
       - main
-
 
   workflow_dispatch:
 
 
-
-
-
 jobs:
-
 
   build:
 
-
-    name: Build ${{ matrix.os }}
-
-
-    runs-on: ${{ matrix.os }}
-
-
-
     strategy:
-
 
       matrix:
 
-
         os:
-
           - windows-latest
-
           - ubuntu-latest
 
 
-
+    runs-on: ${{ matrix.os }}
 
 
     steps:
 
 
       - name: Checkout repository
-
         uses: actions/checkout@v4
 
 
 
-
-
       - name: Setup Node.js
-
         uses: actions/setup-node@v4
 
         with:
 
+          node-version: 20
 
-          node-version: 22
-
-
+          cache: npm
 
 
 
       - name: Install dependencies
-
         run: npm install
 
 
 
-
-
       - name: Build application
-
         run: npm run build
 
+        env:
+
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
 
 
-
-      - name: Upload build artifacts
-
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
 
         with:
 
-
           name: AuraWallpapers-${{ matrix.os }}
 
-
-          path: release/
+          path: |
+            dist/*
