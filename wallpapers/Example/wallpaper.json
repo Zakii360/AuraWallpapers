@@ -1,41 +1,12 @@
 {
-    "name": "Example Universe",
-    "author": "AuraWallpapers Community",
-    "version": "1.0.0",
-
-    "type": "html",
-
-    "file": "wallpaper.html",
-
-    "preview": "image.png",
-
-
-    "effects": {
-
-        "camera": {
-            "enabled": true,
-            "strength": 50,
-            "speed": 25
-        },
-
-        "rain": {
-            "enabled": true,
-            "amount": 100,
-            "speed": 40
-        },
-
-        "particles": {
-            "enabled": true,
-            "amount": 80,
-            "size": 3
-        },
-
-        "color": {
-            "brightness": 100,
-            "contrast": 100,
-            "saturation": 100
-        }
-
-    }
-
+  "id": "example",
+  "name": "Example Universe",
+  "author": "AuraWallpapers Community",
+  "version": "1.0.0",
+  "entry": "wallpaper.html",
+  "preview": "preview.png",
+  "effects": {
+    "cameraDrift": { "enabled": true, "amplitude": 14 },
+    "particles": { "enabled": true, "intensity": 0.4 }
+  }
 }
