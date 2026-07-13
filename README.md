@@ -83,10 +83,13 @@ npm run build:linux    # Linux AppImage
 GitHub Actions (`.github/workflows/build.yml`) runs these as separate jobs on
 `windows-latest` and `ubuntu-latest` runners.
 
-## Known limitations
+## Known limitations (as of now)
 
 - Multi-monitor "span" mode (one wallpaper stretched across all displays as a single canvas)
   is not implemented; each monitor currently gets its own independent wallpaper instance.
   "Clone" is achieved by applying the same wallpaper to every monitor.
 - The Windows native addon is provided as source and build configuration; it needs to be
   compiled on a Windows machine (or via the CI workflow) before desktop attachment works.
+
+  ## This should probably go in development
+  - If you wish to submit wallpapers for demo backgrounds, please feel free to create a PR to add them in the wallpaper/Example folder, named as preview.PNG. I will review it and add it manually as an image.
