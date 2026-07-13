@@ -1,0 +1,12 @@
+{
+  "id": "example",
+  "name": "Example Universe",
+  "author": "AuraWallpapers Community",
+  "version": "1.0.0",
+  "entry": "wallpaper.html",
+  "preview": "preview.png",
+  "effects": {
+    "cameraDrift": { "enabled": true, "amplitude": 14 },
+    "particles": { "enabled": true, "intensity": 0.4 }
+  }
+}

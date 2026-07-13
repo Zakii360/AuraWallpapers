@@ -1,0 +1,65 @@
+{
+  "name": "aurawallpapers",
+  "version": "3.0.0",
+  "description": "Open-source live wallpaper engine for Windows and Linux",
+  "author": {
+    "name": "Zakii360",
+    "email": "zakii@360-search.com"
+  },
+  "license": "MIT",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:addon": "node-gyp rebuild --directory native/windows/addon",
+    "postinstall": "node scripts/build-addon-if-windows.js",
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:linux": "electron-builder --linux --publish never"
+  },
+  "dependencies": {
+    "electron-store": "^10.0.0",
+    "node-addon-api": "^8.2.0"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.15.3",
+    "node-gyp": "^10.2.0"
+  },
+  "build": {
+    "appId": "io.aurawallpapers.desktop",
+    "productName": "AuraWallpapers",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "app/**/*",
+      "core/**/*",
+      "native/**/*",
+      "!native/windows/addon/build/Release/obj",
+      "ui/**/*",
+      "wallpapers/**/*",
+      "assets/**/*",
+      "!dist",
+      "!node_modules/.cache"
+    ],
+    "asarUnpack": [
+      "native/windows/addon/build/Release/*.node"
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

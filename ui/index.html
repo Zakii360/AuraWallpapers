@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' file: data:; style-src 'self' 'unsafe-inline';" />
+  <title>AuraWallpapers</title>
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/gallery.css" />
+  <link rel="stylesheet" href="styles/effects.css" />
+</head>
+<body>
+  <div class="shell">
+    <nav class="sidebar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">AuraWallpapers</span>
+      </div>
+
+      <ul class="nav-list" id="nav-list">
+        <li class="nav-item active" data-view="gallery">Gallery</li>
+        <li class="nav-item" data-view="effects">Effects</li>
+        <li class="nav-item" data-view="monitors">Monitors</li>
+        <li class="nav-item" data-view="performance">Performance</li>
+        <li class="nav-item" data-view="settings">Settings</li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <section id="view-gallery" class="view active">
+        <header class="view-header">
+          <h1>Gallery</h1>
+          <div class="view-actions">
+            <input id="gallery-search" type="search" placeholder="Search wallpapers" />
+            <button id="gallery-refresh" class="button secondary">Refresh</button>
+          </div>
+        </header>
+        <div id="gallery-grid" class="gallery-grid"></div>
+      </section>
+
+      <section id="view-effects" class="view">
+        <header class="view-header">
+          <h1>Effects</h1>
+          <p class="view-subtitle" id="effects-subtitle">Select a wallpaper from the gallery to edit its effects.</p>
+        </header>
+        <div id="effects-form" class="effects-form"></div>
+      </section>
+
+      <section id="view-monitors" class="view">
+        <header class="view-header">
+          <h1>Monitors</h1>
+        </header>
+        <div id="monitor-list" class="monitor-list"></div>
+      </section>
+
+      <section id="view-performance" class="view">
+        <header class="view-header">
+          <h1>Performance</h1>
+        </header>
+        <div id="performance-panel" class="settings-panel"></div>
+      </section>
+
+      <section id="view-settings" class="view">
+        <header class="view-header">
+          <h1>Settings</h1>
+        </header>
+        <div id="settings-panel" class="settings-panel"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="scripts/api.js"></script>
+  <script src="scripts/gallery.js"></script>
+  <script src="scripts/effectsEditor.js"></script>
+  <script src="scripts/monitorSelector.js"></script>
+  <script src="scripts/settingsPage.js"></script>
+  <script src="scripts/app.js"></script>
+</body>
+</html>
