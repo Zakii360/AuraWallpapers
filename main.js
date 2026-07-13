@@ -1,161 +1,77 @@
-const {
-    BrowserWindow,
-    screen
-} = require("electron");
+"use strict";
 
 const path = require("path");
+const { app, screen, powerMonitor } = require("electron");
 
-class Wallpaper {
+const WallpaperManager = require("../core/wallpaper/WallpaperManager");
+const WallpaperLoader = require("../core/wallpaper/WallpaperLoader");
+const SettingsService = require("../core/settings/SettingsService");
+const MonitorService = require("../core/monitors/MonitorService");
+const EffectRuntime = require("../core/effects/EffectRuntime");
+const DesktopServiceFactory = require("../native/DesktopServiceFactory");
 
-    constructor() {
+const ControlPanelWindow = require("./windows/ControlPanelWindow");
+const registerIpc = require("./ipc");
 
-        this.window = null;
-        this.currentWallpaper = null;
+const WALLPAPER_LIBRARY_DIR = path.join(__dirname, "..", "wallpapers");
 
-    }
+let wallpaperManager;
+let controlPanelWindow;
 
+async function bootstrap() {
+  const settingsService = new SettingsService(app.getPath("userData"));
+  const monitorService = new MonitorService(screen);
+  const loader = new WallpaperLoader(WALLPAPER_LIBRARY_DIR);
+  const desktopServiceFactory = new DesktopServiceFactory();
+  const effectRuntime = new EffectRuntime();
 
+  wallpaperManager = new WallpaperManager({
+    loader,
+    settingsService,
+    monitorService,
+    desktopServiceFactory,
+    effectRuntime,
+  });
 
-    create(wallpaper) {
+  await wallpaperManager.initialize();
 
-        if (!wallpaper) {
-            return;
-        }
+  registerIpc({ wallpaperManager, settingsService, monitorService });
 
-        const display =
-            screen.getPrimaryDisplay();
+  controlPanelWindow = new ControlPanelWindow();
+  controlPanelWindow.open();
 
-        const bounds =
-            display.bounds;
-
-        if (!this.window) {
-
-            this.window =
-                new BrowserWindow({
-
-                    x: bounds.x,
-                    y: bounds.y,
-
-                    width: bounds.width,
-                    height: bounds.height,
-
-                    frame: false,
-
-                    transparent: false,
-
-                    fullscreen: false,
-
-                    resizable: false,
-                    movable: false,
-                    minimizable: false,
-                    maximizable: false,
-
-                    focusable: false,
-
-                    skipTaskbar: true,
-
-                    show: false,
-
-                    webPreferences: {
-
-                        nodeIntegration: false,
-
-                        contextIsolation: true
-
-                    }
-
-                });
-
-            this.window.setMenuBarVisibility(false);
-
-            this.window.setIgnoreMouseEvents(true);
-
-            this.window.on("closed", () => {
-
-                this.window = null;
-                this.currentWallpaper = null;
-
-            });
-
-        }
-
-        this.currentWallpaper = wallpaper.id;
-
-        this.window.loadFile(
-
-            path.join(
-                __dirname,
-                "wallpapers",
-                wallpaper.id,
-                "wallpaper.html"
-            )
-
-        );
-
-        this.window.once("ready-to-show", () => {
-
-            if (!this.window) {
-                return;
-            }
-
-            this.window.showInactive();
-
-            this.window.setAlwaysOnTop(false);
-
-            this.window.blur();
-
-        });
-
-    }
-
-
-
-    hide() {
-
-        if (this.window) {
-
-            this.window.hide();
-
-        }
-
-    }
-
-
-
-    show() {
-
-        if (this.window) {
-
-            this.window.showInactive();
-
-        }
-
-    }
-
-
-
-    isRunning() {
-
-        return this.window !== null;
-
-    }
-
-
-
-    close() {
-
-        if (!this.window) {
-            return;
-        }
-
-        this.window.destroy();
-
-        this.window = null;
-
-        this.currentWallpaper = null;
-
-    }
-
+  registerPerformanceGuards(settingsService);
 }
 
-module.exports = Wallpaper;
+function registerPerformanceGuards(settingsService) {
+  powerMonitor.on("on-battery", () => {
+    if (settingsService.get("pauseOnBattery")) {
+      wallpaperManager.pauseAll();
+    }
+  });
+
+  powerMonitor.on("on-ac", () => {
+    wallpaperManager.resumeAll();
+  });
+
+  powerMonitor.on("suspend", () => wallpaperManager.pauseAll());
+  powerMonitor.on("resume", () => wallpaperManager.resumeAll());
+}
+
+app.whenReady().then(bootstrap);
+
+app.on("window-all-closed", () => {
+  // The wallpaper windows are not counted as regular app windows; closing the control panel should not stop the wallpapers from rendering.
+});
+
+app.on("activate", () => {
+  if (controlPanelWindow && !controlPanelWindow.isOpen()) {
+    controlPanelWindow.open();
+  }
+});
+
+app.on("before-quit", () => {
+  if (wallpaperManager) {
+    wallpaperManager.shutdown();
+  }
+});
