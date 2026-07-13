@@ -57,6 +57,18 @@ class WindowsDesktopService {
     const native = loadAddon();
     return Boolean(native && native.isWorkerWAvailable());
   }
+
+  async isFullscreenAppActive() {
+    const native = loadAddon();
+    if (!native || typeof native.isForegroundFullscreen !== "function") return false;
+
+    try {
+      return native.isForegroundFullscreen();
+    } catch (error) {
+      console.error("Failed to check foreground fullscreen state:", error.message);
+      return false;
+    }
+  }
 }
 
 module.exports = WindowsDesktopService;

@@ -94,6 +94,41 @@ Napi::Value IsWorkerWAvailable(const Napi::CallbackInfo& info) {
   return Napi::Boolean::New(info.Env(), FindWorkerW() != nullptr);
 }
 
+Napi::Value IsForegroundFullscreen(const Napi::CallbackInfo& info) {
+  Napi::Env env = info.Env();
+
+  HWND foreground = GetForegroundWindow();
+  if (foreground == nullptr) {
+    return Napi::Boolean::New(env, false);
+  }
+
+  // The desktop (Progman/WorkerW) being focused means no app is fullscreen.
+  wchar_t className[256];
+  GetClassNameW(foreground, className, 256);
+  if (wcscmp(className, L"Progman") == 0 || wcscmp(className, L"WorkerW") == 0) {
+    return Napi::Boolean::New(env, false);
+  }
+
+  RECT windowRect;
+  if (!GetWindowRect(foreground, &windowRect)) {
+    return Napi::Boolean::New(env, false);
+  }
+
+  HMONITOR monitor = MonitorFromWindow(foreground, MONITOR_DEFAULTTONEAREST);
+  MONITORINFO monitorInfo;
+  monitorInfo.cbSize = sizeof(MONITORINFO);
+  if (!GetMonitorInfoW(monitor, &monitorInfo)) {
+    return Napi::Boolean::New(env, false);
+  }
+
+  bool coversMonitor = windowRect.left <= monitorInfo.rcMonitor.left &&
+                        windowRect.top <= monitorInfo.rcMonitor.top &&
+                        windowRect.right >= monitorInfo.rcMonitor.right &&
+                        windowRect.bottom >= monitorInfo.rcMonitor.bottom;
+
+  return Napi::Boolean::New(env, coversMonitor);
+}
+
 #else  // !_WIN32
 
 Napi::Value Attach(const Napi::CallbackInfo& info) {
@@ -110,12 +145,17 @@ Napi::Value IsWorkerWAvailable(const Napi::CallbackInfo& info) {
   return Napi::Boolean::New(info.Env(), false);
 }
 
+Napi::Value IsForegroundFullscreen(const Napi::CallbackInfo& info) {
+  return Napi::Boolean::New(info.Env(), false);
+}
+
 #endif
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set("attach", Napi::Function::New(env, Attach));
   exports.Set("detach", Napi::Function::New(env, Detach));
   exports.Set("isWorkerWAvailable", Napi::Function::New(env, IsWorkerWAvailable));
+  exports.Set("isForegroundFullscreen", Napi::Function::New(env, IsForegroundFullscreen));
   return exports;
 }
 

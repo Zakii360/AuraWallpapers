@@ -72,7 +72,8 @@ class WallpaperManager {
     }
 
     const instance = this.instances.get(monitorId) || this.createInstance(monitor);
-    const effects = this.settingsService.getEffects(wallpaperId);
+    const savedEffects = this.settingsService.getEffects(wallpaperId);
+    const effects = Object.keys(savedEffects).length > 0 ? savedEffects : wallpaperPackage.defaultEffects;
 
     await instance.load(wallpaperPackage, effects);
     this.instances.set(monitorId, instance);

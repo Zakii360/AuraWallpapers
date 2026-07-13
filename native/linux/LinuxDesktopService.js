@@ -6,10 +6,11 @@ const { promisify } = require("util");
 const execFileAsync = promisify(execFile);
 
 /**
- * X11 desktop integration using wmctrl. Wayland compositors do not expose
- * the window-stacking primitives this depends on, so on Wayland the
- * wallpaper window is left as a normal always-behind window and the
- * limitation is surfaced once via a console warning.
+ * X11 desktop integration using wmctrl (and xprop for fullscreen
+ * detection). Wayland compositors do not expose the window-stacking
+ * primitives this depends on, so on Wayland the wallpaper window is left
+ * as a normal always-behind window and the limitation is surfaced once
+ * via a console warning; fullscreen detection is silently skipped.
  */
 class LinuxDesktopService {
   constructor() {
@@ -53,6 +54,33 @@ class LinuxDesktopService {
     try {
       await execFileAsync("wmctrl", ["-i", "-r", windowId, "-b", "remove,below,sticky"]);
       return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async isFullscreenAppActive(monitorBounds) {
+    if (this.isWayland() || !monitorBounds) return false;
+
+    try {
+      const { stdout: activeIdRaw } = await execFileAsync("xprop", ["-root", "_NET_ACTIVE_WINDOW"]);
+      const activeId = (activeIdRaw.match(/0x[0-9a-fA-F]+/) || [])[0];
+      if (!activeId) return false;
+
+      const { stdout: listRaw } = await execFileAsync("wmctrl", ["-l", "-G"]);
+      const line = listRaw.split("\n").find((entry) => entry.startsWith(activeId));
+      if (!line) return false;
+
+      // wmctrl -l -G columns: id desktop x y width height client host title...
+      const [, , x, y, width, height] = line.trim().split(/\s+/);
+      const windowBounds = { x: Number(x), y: Number(y), width: Number(width), height: Number(height) };
+
+      return (
+        windowBounds.x <= monitorBounds.x &&
+        windowBounds.y <= monitorBounds.y &&
+        windowBounds.x + windowBounds.width >= monitorBounds.x + monitorBounds.width &&
+        windowBounds.y + windowBounds.height >= monitorBounds.y + monitorBounds.height
+      );
     } catch (error) {
       return false;
     }
